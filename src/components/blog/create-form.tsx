@@ -1,0 +1,449 @@
+'use client';
+
+/* React */
+import React, { FormEvent, useEffect, useState } from 'react';
+import { FaSearch } from 'react-icons/fa';
+import { IoClose } from 'react-icons/io5';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+/* import axios from "axios"; */
+
+/* Shadcn */
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+/* import Pagination from "../shared/pagination"; */
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+import PlateEditor from '../plate-editor';
+import { ImageUpload } from '../shared/image-upload';
+import { Checkbox } from '../ui/checkbox';
+import { Textarea } from '../ui/textarea';
+
+interface Props {}
+
+interface Field {
+  name: string;
+  label: string;
+  colSpan: string;
+  type: string;
+  required?: boolean;
+  min?: number;
+  max?: number;
+  text?: string;
+  options?: any[];
+  list?: any;
+  actions?: string;
+  search?: boolean;
+}
+
+interface Tab {
+  id: number;
+  value?: string;
+  fields: Field[];
+}
+
+interface SectionWithFields {
+  title: string;
+  fields: Field[];
+}
+
+interface SectionWithTabs {
+  title: string;
+  type: string;
+  tabs: Tab[];
+}
+
+type Section = SectionWithFields | SectionWithTabs;
+
+function getQueryParam(param: string): string | null {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(param);
+}
+
+const CreateForm: React.FC<Props> = () => {
+  const [editadData, setEditadData] = useState<any | null>(null);
+  const [isEditedPropety, setIsEditedPropety] = useState<boolean>(false);
+
+  const [loadingForm, setLoadingForm] = useState<boolean>(false);
+
+  const [productType, setProductType] = useState('simple');
+  const [existingAttribute, setExistingAttribute] = useState('');
+  const [attributes, setAttributes] = useState<any>([]);
+  const [variations, setVariations] = useState<any>(null);
+  const [files, setFiles] = useState<File[] | null>([]);
+
+  const [filters, setFilters] = useState({
+    products: null,
+  });
+
+  const tabs = [
+    {
+      value: 'general',
+      label: 'General',
+      condition: (data: any) =>
+        data.type === 'simple' || data.type === 'external',
+    },
+    { value: 'inventory', label: 'Inventario', condition: () => true },
+    {
+      value: 'shipping',
+      label: 'Envío',
+      condition: (data: any) =>
+        data.type === 'simple' || data.type === 'variable',
+    },
+    {
+      value: 'related-products',
+      label: 'Productos relacionados',
+      condition: () => true,
+    },
+    { value: 'attributes', label: 'Atributos', condition: () => true },
+    {
+      value: 'variations',
+      label: 'Variaciones',
+      condition: (data: any) => data.type === 'variable',
+    },
+    { value: 'advanced', label: 'Avanzado', condition: () => true },
+  ];
+
+  /* useEffect(() => {
+    const paramValue = getQueryParam("project");
+    if (paramValue) {
+      axios
+        .get(`${ServerUrl}/projects/${paramValue}`, {
+          headers: {
+            Authorization: `Bearer ${tokenFromCookie}`,
+          },
+        })
+        .then((response) => {
+          if (response.status === 200) {
+            setEditadData(response.data);
+            .log(response.data);
+          }
+        })
+        .catch((error) => {
+          toast.error("Error al cargar el proyecto");
+          navigate("/portfolio/projects");
+          console.log(error);
+        });
+    } else {
+      if (currentPath !== "/create-project") {
+        toast.error("No se reconocio ningun proyecto con ese nombre.");
+        navigate("/create-project");
+      }
+    }
+  }, []); */
+
+  const [formData, setFormData] = useState<Record<string, any>>({
+    data: new Date(),
+    title: '',
+    content: '',
+    author: '',
+    categories: '',
+    tags: '',
+  });
+
+  useEffect(() => {
+    console.log(formData);
+  }, [formData]);
+
+  useEffect(() => {
+    if (editadData) {
+      setIsEditedPropety(true);
+      setFormData({});
+    } else {
+      setIsEditedPropety(false);
+    }
+  }, [editadData]);
+
+  const [errorMessages, setErrorMessages] = useState<Record<string, string>>(
+    {}
+  );
+
+  let fieldsDataTypeSimple: Section[] = [
+    {
+      title: 'Datos principales',
+      fields: [
+        {
+          name: 'title',
+          label: 'Nombre del producto',
+          colSpan: 'col-span-2 min-[1400px]:col-span-3',
+          type: 'text',
+          min: 3,
+        },
+       
+        {
+          name: 'description',
+          label: 'Descripcion del producto',
+          colSpan: 'col-span-2 min-[1400px]:col-span-3',
+          type: 'textarea',
+          max: 500,
+        },
+        {
+          name: 'short_description',
+          label: 'Descripcion corta del producto',
+          colSpan: 'col-span-2 min-[1400px]:col-span-3',
+          type: 'textarea',
+          max: 250,
+        },
+      ],
+    },
+  ];
+
+  if (formData['inventory_management'] !== true) {
+    fieldsDataTypeSimple = fieldsDataTypeSimple.map((section: any) => {
+      if (section.title === 'Datos del producto') {
+        return {
+          ...section,
+          tabs: section.tabs.map((tab: any) => ({
+            ...tab,
+            fields: tab.fields.filter(
+              (field: any) =>
+                field.name !== 'stock_quantity' &&
+                field.name !== 'reserves' &&
+                field.name !== 'low_existens'
+            ),
+          })),
+        };
+      }
+      return section;
+    });
+  }
+
+  if (formData['program'] !== true) {
+    fieldsDataTypeSimple = fieldsDataTypeSimple.map((section: any) => {
+      if (section.title === 'Datos del producto') {
+        return {
+          ...section,
+          tabs: section.tabs.map((tab: any) => ({
+            ...tab,
+            fields: tab.fields.filter(
+              (field: any) =>
+                field.name !== 'date_on_sale_from' &&
+                field.name !== 'date_on_sale_to'
+            ),
+          })),
+        };
+      }
+      return section;
+    });
+  }
+
+  let noValid = false;
+
+  const validateField = (name: string, value: string) => {
+    const newErrorMessages: Record<string, string> = {};
+
+    let field: Field | undefined;
+
+    fieldsDataTypeSimple.some((section) => {
+      if ('fields' in section) {
+        field = section.fields.find((f) => f.name === name);
+      } else if ('tabs' in section) {
+        section.tabs.some((tab) => {
+          field = tab.fields.find((f) => f.name === name);
+          return !!field;
+        });
+      }
+      return !!field;
+    });
+
+    if (field) {
+      if (field.required && !value) {
+        newErrorMessages[name] = 'Por favor, complete el campo.';
+      } else if (field.min && value.length < field.min) {
+        newErrorMessages[name] =
+          `Por favor, ingrese al menos ${field.min} caracteres.`;
+      } else if (field.max && value.length > field.max) {
+        newErrorMessages[name] =
+          `Por favor, ingrese como máximo ${field.max} caracteres.`;
+      } else if (field.type === 'number' && value) {
+        if (!value) {
+          newErrorMessages[name] = 'Por favor, ingrese un número.';
+        } else if (isNaN(Number(value))) {
+          newErrorMessages[name] = 'Debe ser un número válido.';
+        } else if (Number(value) < 0) {
+          newErrorMessages[name] = 'Debe ser un número no negativo.';
+        }
+      }
+    }
+
+    setErrorMessages((prevErrorMessages) => {
+      const updatedErrorMessages = {
+        ...prevErrorMessages,
+        ...newErrorMessages,
+      };
+
+      if (newErrorMessages[name] === undefined) {
+        delete updatedErrorMessages[name];
+      }
+
+      return updatedErrorMessages;
+    });
+
+    if (Object.keys(newErrorMessages).length > 0) {
+      noValid = true;
+    }
+  };
+
+  const validateForm = (): boolean => {
+    noValid = false;
+    Object.keys(formData).forEach((key) => {
+      validateField(key, formData[key]);
+    });
+
+    console.log(noValid);
+
+    return !noValid;
+  };
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
+    e.preventDefault();
+    setLoadingForm(true);
+
+    const validateData = validateForm();
+
+    setTimeout(() => {
+      setLoadingForm(false);
+    }, 5000);
+  };
+
+  const handleSearchChange = (e: any) => {
+    const value = e.target.value;
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      products: value !== '' ? value : null,
+    }));
+  };
+
+  const handleClearSearch = () => {
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      products: null,
+    }));
+  };
+
+  useEffect(() => {
+    attributes.forEach((attr: any) => {
+      attr.options.forEach((option: any) => {
+        if (attr.save) {
+          console.log('first');
+        }
+      });
+    });
+  }, [attributes]);
+
+  return (
+    <>
+      <div className="bg-white rounded-md shadow flex flex-col">
+        <div className="flex flex-col gap-3 min-[550px]:gap-0 min-[550px]:flex-row justify-between items-center w-full border-b p-3">
+          <h1 className="text-2xl sm:text-4xl text-secondary font-semibold">
+            Crear Producto
+          </h1>
+          <Select
+            onValueChange={(value) => {
+              setProductType(value);
+            }}
+            defaultValue={productType}
+          >
+            <SelectTrigger className="w-[170px]">
+              <SelectValue placeholder="Tipo de producto" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={'simple'}>Producto simple</SelectItem>
+              <SelectItem value={'agruped'}>Producto agrupado</SelectItem>
+              <SelectItem value={'external'}>
+                Producto externo/afiliado
+              </SelectItem>
+              <SelectItem value={'variable'}>Producto variable</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit}>
+        <>
+          {fieldsDataTypeSimple.map((data, index) => (
+            <div className="grid grid-cols-2 min-[1400px]:grid-cols-3 gap-3 rounded-md mt-5 bg-white p-3 shadow">
+              <h4 className={`col-span-2 min-[1400px]:col-span-3 border-b`}>
+                {data.title}
+              </h4>
+
+              {/* @ts-ignore */}
+              {data?.fields.map((fieldInfo) => (
+                <div key={`${fieldInfo.name}`} className={fieldInfo.colSpan}>
+                  <div>
+                    <Label
+                      className={`${
+                        errorMessages[fieldInfo.name] && 'text-accent'
+                      } flex items-center gap-1 pb-1`}
+                      htmlFor={fieldInfo.name}
+                    >
+                      {fieldInfo.label}{' '}
+                      {fieldInfo.required && (
+                        <span className="text-accent">*</span>
+                      )}{' '}
+                    </Label>
+
+                    {fieldInfo.type === 'text' ? (
+                      <>
+                        <Input
+                          id={fieldInfo.name}
+                          type={fieldInfo.type}
+                          onChange={(event) => {
+                            const value = event.target.value;
+                            setFormData((prevFormData) => ({
+                              ...prevFormData,
+                              [fieldInfo.name]: value,
+                            }));
+                            validateField(fieldInfo.name, value);
+                          }}
+                          value={formData[fieldInfo.name] || ''}
+                          name={fieldInfo.name}
+                        />
+                      </>
+                    ) : (
+                      <div className="h-96">
+                        <div className="!h-96 rounded-lg border bg-background shadow">
+                          <PlateEditor />
+                        </div>
+                      </div>
+                    )}
+
+                    {errorMessages[fieldInfo.name] && (
+                      <p className="text-accent text-xs">
+                        {errorMessages[fieldInfo.name]}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ))}
+
+          <div className="mt-3">
+            <Button
+              disabled={loadingForm}
+              className="w-full text-white"
+              type="submit"
+            >
+              {loadingForm ? (
+                <div className="w-6 h-6 border-4 border-t-transparent border-white rounded-full animate-spin"></div>
+              ) : (
+                'Confirmar'
+              )}
+            </Button>
+          </div>
+        </>
+      </form>
+    </>
+  );
+};
+
+export default CreateForm;

@@ -10,6 +10,7 @@ import { ThemeProvider } from '@/components/site/theme-provider';
 import '@/styles/globals.css';
 
 import { Metadata, Viewport } from 'next';
+import { Providers } from './providers';
 
 export const metadata: Metadata = {
   title: {
@@ -54,8 +55,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
               skipDelayDuration={0}
             >
               <div className="relative flex min-h-screen flex-col">
-                <SiteHeader />
-                <div className="flex-1">{children}</div>
+                <Providers>{children}</Providers>
               </div>
               <TailwindIndicator />
             </TooltipProvider>
