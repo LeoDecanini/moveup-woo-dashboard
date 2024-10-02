@@ -1,6 +1,9 @@
-"use client";
-import Sidebar from "@/components/navigation/sidebar";
-import React, { useState } from "react";
+'use client';
+
+import React, { useState } from 'react';
+import { AuthProvider, useAuth } from '@/context/platform-user-context';
+
+import Sidebar from '@/components/navigation/sidebar';
 
 export const Providers = ({
   children,
@@ -10,14 +13,16 @@ export const Providers = ({
   const [test, setTest] = useState(true);
 
   return (
-    <main>
-      {test ? (
-        <Sidebar>{children}</Sidebar>
-      ) : (
-        <>
-          <h1>autenticacion</h1>
-        </>
-      )}
-    </main>
+    <AuthProvider>
+      <main>
+        {test ? (
+          <Sidebar>{children}</Sidebar>
+        ) : (
+          <>
+            <h1>autenticacion</h1>
+          </>
+        )}
+      </main>
+    </AuthProvider>
   );
 };

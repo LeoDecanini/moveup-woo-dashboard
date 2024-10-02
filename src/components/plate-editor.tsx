@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { cn, withProps } from '@udecode/cn';
 import { AlignPlugin } from '@udecode/plate-alignment/react';
 import { AutoformatPlugin } from '@udecode/plate-autoformat/react';
@@ -31,6 +31,7 @@ import {
   isBlockAboveEmpty,
   isSelectionAtBlockStart,
   someNode,
+  TElement,
 } from '@udecode/plate-common';
 import {
   createPlateEditor,
@@ -51,6 +52,7 @@ import { HEADING_KEYS, HEADING_LEVELS } from '@udecode/plate-heading';
 import { HeadingPlugin } from '@udecode/plate-heading/react';
 import { HighlightPlugin } from '@udecode/plate-highlight/react';
 import { HorizontalRulePlugin } from '@udecode/plate-horizontal-rule/react';
+import { HtmlReactPlugin, serializeHtml } from '@udecode/plate-html/react';
 import { IndentListPlugin } from '@udecode/plate-indent-list/react';
 import { IndentPlugin } from '@udecode/plate-indent/react';
 import { JuicePlugin } from '@udecode/plate-juice';
@@ -127,6 +129,15 @@ export default function PlateEditor() {
 
   const editor = useMyEditor();
 
+  
+  const saveHtml = () => {
+    const html = editor.api.htmlReact.serialize({
+      nodes: editor.children,
+      // if you use @udecode/plate-dnd
+      dndWrapper: (props) => <DndProvider backend={HTML5Backend} {...props} />,
+    });
+    return html; // Guarda el HTML en una constante
+  };
 
   return (
     <DndProvider backend={HTML5Backend}>
@@ -160,6 +171,7 @@ export default function PlateEditor() {
           <CursorOverlay containerRef={containerRef} />
         </div>
       </Plate>
+      <button onClick={saveHtml}>Save HTML</button>
     </DndProvider>
   );
 }
@@ -167,6 +179,7 @@ export default function PlateEditor() {
 export const useMyEditor = () => {
   const editor = createPlateEditor({
     plugins: [
+      HtmlReactPlugin,
       // Nodes
       HeadingPlugin,
       BlockquotePlugin,
@@ -436,6 +449,6 @@ export const useMyEditor = () => {
       },
     ],
   });
-
+  
   return editor;
 };

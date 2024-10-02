@@ -1315,8 +1315,8 @@ const CreateForm: React.FC<Props> = () => {
                             />
                           </>
                         ) : (
-                          <div className="h-96">
-                            <div className="!h-96 rounded-lg border bg-background shadow">
+                          <div className="min-h-96">
+                            <div className="min-h-96 !h-auto rounded-lg border bg-background shadow">
                               <PlateEditor />
                             </div>
                           </div>
