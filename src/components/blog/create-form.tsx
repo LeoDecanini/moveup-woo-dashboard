@@ -2,6 +2,7 @@
 
 /* React */
 import React, { FormEvent, useEffect, useState } from 'react';
+import { BsPinFill } from 'react-icons/bs';
 import { FaSearch } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 
@@ -177,20 +178,12 @@ const CreateForm: React.FC<Props> = () => {
           type: 'text',
           min: 3,
         },
-       
         {
-          name: 'description',
-          label: 'Descripcion del producto',
+          name: 'content',
+          label: 'Descripcion del blog',
           colSpan: 'col-span-2 min-[1400px]:col-span-3',
           type: 'textarea',
           max: 500,
-        },
-        {
-          name: 'short_description',
-          label: 'Descripcion corta del producto',
-          colSpan: 'col-span-2 min-[1400px]:col-span-3',
-          type: 'textarea',
-          max: 250,
         },
       ],
     },
@@ -367,80 +360,142 @@ const CreateForm: React.FC<Props> = () => {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit}>
-        <>
-          {fieldsDataTypeSimple.map((data, index) => (
-            <div className="grid grid-cols-2 min-[1400px]:grid-cols-3 gap-3 rounded-md mt-5 bg-white p-3 shadow">
-              <h4 className={`col-span-2 min-[1400px]:col-span-3 border-b`}>
-                {data.title}
-              </h4>
+      <form className="grid grid-cols-4 gap-4" onSubmit={handleSubmit}>
+        <div className="col-span-3">
+          <>
+            {fieldsDataTypeSimple.map((data, index) => (
+              <div className="grid grid-cols-2 min-[1400px]:grid-cols-3 gap-3 rounded-md mt-5 bg-white p-3 shadow">
+                <h4 className={`col-span-2 min-[1400px]:col-span-3 border-b`}>
+                  {data.title}
+                </h4>
 
-              {/* @ts-ignore */}
-              {data?.fields.map((fieldInfo) => (
-                <div key={`${fieldInfo.name}`} className={fieldInfo.colSpan}>
-                  <div>
-                    <Label
-                      className={`${
-                        errorMessages[fieldInfo.name] && 'text-accent'
-                      } flex items-center gap-1 pb-1`}
-                      htmlFor={fieldInfo.name}
-                    >
-                      {fieldInfo.label}{' '}
-                      {fieldInfo.required && (
-                        <span className="text-accent">*</span>
-                      )}{' '}
-                    </Label>
+                {/* @ts-ignore */}
+                {data?.fields.map((fieldInfo) => (
+                  <div key={`${fieldInfo.name}`} className={fieldInfo.colSpan}>
+                    <div>
+                      <Label
+                        className={`${
+                          errorMessages[fieldInfo.name] && 'text-accent'
+                        } flex items-center gap-1 pb-1`}
+                        htmlFor={fieldInfo.name}
+                      >
+                        {fieldInfo.label}{' '}
+                        {fieldInfo.required && (
+                          <span className="text-accent">*</span>
+                        )}{' '}
+                      </Label>
 
-                    {fieldInfo.type === 'text' ? (
-                      <>
-                        <Input
-                          id={fieldInfo.name}
-                          type={fieldInfo.type}
-                          onChange={(event) => {
-                            const value = event.target.value;
-                            setFormData((prevFormData) => ({
-                              ...prevFormData,
-                              [fieldInfo.name]: value,
-                            }));
-                            validateField(fieldInfo.name, value);
-                          }}
-                          value={formData[fieldInfo.name] || ''}
-                          name={fieldInfo.name}
-                        />
-                      </>
-                    ) : (
-                      <div className="h-96">
-                        <div className="!h-96 rounded-lg border bg-background shadow">
-                          <PlateEditor />
+                      {fieldInfo.type === 'text' ? (
+                        <>
+                          <Input
+                            id={fieldInfo.name}
+                            type={fieldInfo.type}
+                            onChange={(event) => {
+                              const value = event.target.value;
+                              setFormData((prevFormData) => ({
+                                ...prevFormData,
+                                [fieldInfo.name]: value,
+                              }));
+                              validateField(fieldInfo.name, value);
+                            }}
+                            value={formData[fieldInfo.name] || ''}
+                            name={fieldInfo.name}
+                          />
+                        </>
+                      ) : (
+                        <div className="h-96">
+                          <div className="!h-96 rounded-lg border bg-background shadow">
+                            <PlateEditor />
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {errorMessages[fieldInfo.name] && (
-                      <p className="text-accent text-xs">
-                        {errorMessages[fieldInfo.name]}
-                      </p>
-                    )}
+                      {errorMessages[fieldInfo.name] && (
+                        <p className="text-accent text-[13px]">
+                          {errorMessages[fieldInfo.name]}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          ))}
+                ))}
+              </div>
+            ))}
+          </>
+        </div>
 
-          <div className="mt-3">
-            <Button
-              disabled={loadingForm}
-              className="w-full text-white"
-              type="submit"
-            >
-              {loadingForm ? (
-                <div className="w-6 h-6 border-4 border-t-transparent border-white rounded-full animate-spin"></div>
-              ) : (
-                'Confirmar'
-              )}
-            </Button>
+        <div className="flex flex-col gap-4 mt-5">
+          <div className="bg-white rounded-md shadow">
+            <div className="flex flex-col gap-2 p-3">
+              <h3>Publicar</h3>
+
+              <div className="flex flex-col gap-2 ">
+                <div className="flex items-center gap-2 text-[13px]">
+                  <BsPinFill /> <span>Estado: Borrador</span>{' '}
+                  <Button
+                    type="button"
+                    className="p-0 h-0 text-[13px]"
+                    variant={'link'}
+                  >
+                    editar
+                  </Button>
+                </div>
+
+                <div className="flex items-center gap-2 text-[13px]">
+                  <BsPinFill /> <span>Visibilidad: Pública</span>{' '}
+                  <Button
+                    type="button"
+                    className="p-0 h-0 text-[13px]"
+                    variant={'link'}
+                  >
+                    editar
+                  </Button>
+                </div>
+
+                <div className="flex items-center gap-2 text-[13px]">
+                  <BsPinFill /> <span>Publicar inmediatamente</span>{' '}
+                  <Button
+                    type="button"
+                    className="p-0 h-0 text-[13px]"
+                    variant={'link'}
+                  >
+                    editar
+                  </Button>
+                </div>
+
+                <div className="flex items-center gap-2 text-[13px]">
+                  <span>
+                    Visibilidad catálogo: En la tienda y en los resultados de
+                    búsqueda
+                    <Button
+                      type="button"
+                      className=" ml-1 p-0 h-0 text-[13px]"
+                      variant={'link'}
+                    >
+                      editar
+                    </Button>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-3 border-t">
+              <div className="w-full pt-1 flex justify-between">
+              <Button type="button" variant={'outline'}>
+                  Guardar borrador
+                </Button>
+                <Button type="button">Publicar</Button>
+              </div>
+            </div>
           </div>
-        </>
+
+          <div className="bg-white rounded-md shadow">
+            <div className="flex flex-col gap-2 p-3">
+              <h3>Categorias</h3>
+
+              
+            </div>
+          </div>
+        </div>
       </form>
     </>
   );
