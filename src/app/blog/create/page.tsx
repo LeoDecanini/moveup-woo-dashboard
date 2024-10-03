@@ -7,6 +7,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import CreateForm from "@/components/blog/create-form";
+import Link from 'next/link'
 
 const CreateProduct = () => {
   return (
@@ -17,7 +18,9 @@ const CreateProduct = () => {
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem>
-                  <BreadcrumbLink>Blogs</BreadcrumbLink>
+                <Link href="/blog">
+                  Blog
+                </Link>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>

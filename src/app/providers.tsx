@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { AuthProvider, useAuth } from '@/context/platform-user-context';
+import { AuthProvider } from '@/context/platform-user-context';
 import { WordpressProvider } from '@/context/wordpress-context';
-
-import Sidebar from '@/components/navigation/sidebar';
+import { LayoutProvider } from './layout-provider' 
 
 export const Providers = ({
   children,
@@ -16,16 +15,10 @@ export const Providers = ({
   return (
     <AuthProvider>
       <WordpressProvider>
-      <main>
-        {test ? (
-          <Sidebar>{children}</Sidebar>
-        ) : (
-          <>
-            <h1>autenticacion</h1>
-          </>
-        )}
-      </main>
-          </WordpressProvider>
+          <LayoutProvider>
+            {children}
+          </LayoutProvider>
+        </WordpressProvider>
     </AuthProvider>
   );
 };

@@ -83,12 +83,16 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     console.log(url)
     try {
       const response = await axios.get(url);
-      console.log(response.data);
-      setCompleteUser(response.data);
+      setTimeout(() => {
+        console.log(response.data);
+        setCompleteUser(response.data);
+      }, 1500);
     } catch (error) {
       console.log("can't fetch session", error);
     } finally {
-      setLoading(false);
+      setTimeout(() => {
+        setLoading(false);
+      }, 1500);
     }
   };
 
@@ -136,9 +140,9 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   useEffect(() => {
     if (
       errorToken ===
-        'El token no fué enviado o la Ip y el user-agent desde donde se genero son distintos al que se está enviando ' ||
+      'El token no fué enviado o la Ip y el user-agent desde donde se genero son distintos al que se está enviando ' ||
       errorToken ===
-        'El token enviado no está registrado en la cache del server'
+      'El token enviado no está registrado en la cache del server'
     ) {
       document.cookie = `authToken=; path=/; max-age=0`;
       window.location.replace(`${HomeUrl}/login`);
