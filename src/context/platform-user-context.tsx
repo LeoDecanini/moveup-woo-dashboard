@@ -33,7 +33,7 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [completeUser, setCompleteUser] = useState<any | null>(null);
   const [userPermissions, setUserPermissions] = useState<Permissions | null>(
-    null
+    null,
   );
 
   const [tokenFromCookie, setTokenFromCookie] = useState<string | null>(null);
@@ -80,19 +80,15 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const fetchSession = async () => {
     setLoading(true);
     const url = `${ServerUrl}/platform-users/email/maxi@moveup.digital`;
-    console.log(url)
+    console.log(url);
     try {
       const response = await axios.get(url);
-      setTimeout(() => {
-        console.log(response.data);
-        setCompleteUser(response.data);
-      }, 1500);
+      console.log(response.data);
+      setCompleteUser(response.data);
     } catch (error) {
-      console.log("can't fetch session", error);
+      console.log('can\'t fetch session', error);
     } finally {
-      setTimeout(() => {
-        setLoading(false);
-      }, 1500);
+      setLoading(false);
     }
   };
 
@@ -127,7 +123,7 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
           headers: {
             Authorization: `Bearer ${tokenFromCookie}`,
           },
-        }
+        },
       );
       document.cookie = `authToken=; path=/; max-age=0`;
       window.location.replace(`${HomeUrl}/login`);
