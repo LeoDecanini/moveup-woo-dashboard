@@ -27,8 +27,10 @@ import PlateEditor from '../plate-editor';
 import { ImageUpload } from '../shared/image-upload';
 import { Checkbox } from '../ui/checkbox';
 import { Textarea } from '../ui/textarea';
+import axios from 'axios';
+import { ServerUrl } from '@/lib/utils';
 
-interface Props {}
+interface Props { }
 
 interface Field {
   name: string;
@@ -169,14 +171,14 @@ const CreateForm: React.FC<Props> = () => {
       fields: [
         {
           name: 'title',
-          label: 'Nombre del producto',
+          label: 'Título de la entrada',
           colSpan: 'col-span-2 min-[1400px]:col-span-3',
           type: 'text',
           min: 3,
         },
         {
           name: 'content',
-          label: 'Descripcion del blog',
+          label: 'Descripcion de la entrada',
           colSpan: 'col-span-2 min-[1400px]:col-span-3',
           type: 'textarea',
           max: 500,
@@ -292,15 +294,30 @@ const CreateForm: React.FC<Props> = () => {
     return !noValid;
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     setLoadingForm(true);
 
     const validateData = validateForm();
 
-    setTimeout(() => {
-      setLoadingForm(false);
-    }, 5000);
+    if (!validateData) return
+
+    formData.status = "publish"
+
+    console.log({formData});
+    try {
+      const response = await axios.post(`${ServerUrl}/wordpress/posts`, {
+        userId: "66fcceab3f69e67d4843014a",
+          post: formData
+      }, {
+      });
+      console.log(response.data)
+    } catch (error) {
+      console.log(error);
+    } finally {
+    }
+    setLoadingForm(false);
+
   };
 
   const handleSearchChange = (e: any) => {
@@ -333,9 +350,9 @@ const CreateForm: React.FC<Props> = () => {
       <div className="bg-white rounded-md shadow flex flex-col">
         <div className="flex flex-col gap-3 min-[550px]:gap-0 min-[550px]:flex-row justify-between items-center w-full border-b p-3">
           <h1 className="text-2xl sm:text-4xl text-secondary font-semibold">
-            Crear Producto
+            Crear entrada
           </h1>
-          <Select
+          {/* <Select
             onValueChange={(value) => {
               setProductType(value);
             }}
@@ -352,12 +369,12 @@ const CreateForm: React.FC<Props> = () => {
               </SelectItem>
               <SelectItem value={'variable'}>Producto variable</SelectItem>
             </SelectContent>
-          </Select>
+          </Select> */}
         </div>
       </div>
 
-      <form className="grid grid-cols-4 gap-4" onSubmit={handleSubmit}>
-        <div className="col-span-3">
+      <form className="flex gap-4" onSubmit={handleSubmit}>
+        <div className="w-full">
           <>
             {fieldsDataTypeSimple.map((data, index) => (
               <div className="grid grid-cols-2 min-[1400px]:grid-cols-3 gap-3 rounded-md mt-5 bg-white p-3 shadow">
@@ -370,9 +387,8 @@ const CreateForm: React.FC<Props> = () => {
                   <div key={`${fieldInfo.name}`} className={fieldInfo.colSpan}>
                     <div>
                       <Label
-                        className={`${
-                          errorMessages[fieldInfo.name] && 'text-accent'
-                        } flex items-center gap-1 pb-1`}
+                        className={`${errorMessages[fieldInfo.name] && 'text-accent'
+                          } flex items-center gap-1 pb-1`}
                         htmlFor={fieldInfo.name}
                       >
                         {fieldInfo.label}{' '}
@@ -400,8 +416,23 @@ const CreateForm: React.FC<Props> = () => {
                         </>
                       ) : (
                         <div className="min-h-96">
-                          <div className="min-h-96 rounded-lg border bg-background shadow">
-                            <PlateEditor />
+                          <div /* className="min-h-96 rounded-lg border bg-background shadow" */>
+                            {/* <PlateEditor /> */}
+                            <Textarea
+                              id={fieldInfo.name}
+                              onChange={(event) => {
+                                const value = event.target.value;
+                                setFormData((prevFormData) => ({
+                                  ...prevFormData,
+                                  [fieldInfo.name]: value,
+                                }));
+                                validateField(fieldInfo.name, value);
+                              }}
+                              value={formData[fieldInfo.name] || ''}
+                              name={fieldInfo.name}
+                              className="min-h-96"
+
+                            />
                           </div>
                         </div>
                       )}
@@ -419,7 +450,7 @@ const CreateForm: React.FC<Props> = () => {
           </>
         </div>
 
-        <div className="flex flex-col gap-4 mt-5">
+        <div className="flex flex-col gap-4 mt-5 w-96">
           <div className="bg-white rounded-md shadow">
             <div className="flex flex-col gap-2 p-3">
               <h3>Publicar</h3>
@@ -476,10 +507,10 @@ const CreateForm: React.FC<Props> = () => {
 
             <div className="p-3 border-t">
               <div className="w-full pt-1 flex justify-between">
-              <Button type="button" variant={'outline'}>
+                <Button type="button" variant={'outline'}>
                   Guardar borrador
                 </Button>
-                <Button type="button">Publicar</Button>
+                <Button >Publicar</Button>
               </div>
             </div>
           </div>
@@ -487,8 +518,11 @@ const CreateForm: React.FC<Props> = () => {
           <div className="bg-white rounded-md shadow">
             <div className="flex flex-col gap-2 p-3">
               <h3>Categorias</h3>
-
-              
+            </div>
+          </div>
+          <div className="bg-white rounded-md shadow">
+            <div className="flex flex-col gap-2 p-3">
+              <h3>Etiquetas</h3>
             </div>
           </div>
         </div>
