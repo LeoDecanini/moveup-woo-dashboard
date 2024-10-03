@@ -75,7 +75,7 @@ const Sidebar = ({
               <div className="flex items-center gap-1">
                 <img
                   src="/ICONO_MAIN.png"
-                  className="w-[31px] h-[25px]"
+                  className="h-[25px]"
                   alt="Logo"
                 />
                 {!isLocked && (
