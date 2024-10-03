@@ -92,6 +92,10 @@ const links: LinkGroup[] = [
         text: "Blogs",
         links: [
           {
+            title: "Administrar",
+            href: "/blog",
+          },
+          {
             title: "Crear publicacion",
             href: "/blog/create",
           },

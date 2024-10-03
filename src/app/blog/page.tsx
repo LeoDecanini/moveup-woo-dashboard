@@ -40,11 +40,11 @@ const BlogPage = () => {
     const [selectedStatus, setSelectedStatus] = useState(statusFromUrl);
 
     const postStatus = [
-        { name: "Publicado", slug: "publish", color: '#deffe5', bg: '#012609' },
-        { name: "Programados", slug: "future", color: '#17a2b8', bg: '#e0f7fa' }, 
-        { name: "Privados", slug: "private", color: '#6c757d', bg: '#f8f9fa' }, 
-        { name: "Borrador", slug: "draft", color: '#ffc107', bg: '#fff8e1' }, 
-        { name: "Papelera", slug: "trash", color: '#dc3545', bg: '#f8d7da' },
+        { name: "Publicado", slug: "publish", light: {color: '#012609', bg: '#deffe5'}, dark: {color: '#deffe5', bg: '#012609'} },
+        { name: "Programados", slug: "future", light: {color: '#055b69', bg: '#e0f7fa'}, dark: {color: '#e0f7fa', bg: '#055b69'} }, 
+        { name: "Privados", slug: "private", light: {color: '#2a2d30', bg: '#d8e2ed'}, dark: {color: '#d8e2ed', bg: '#2a2d30'} }, 
+        { name: "Borrador", slug: "draft", light: {color: '#3d2f03', bg: '#ffecb5' }, dark: {color: '#ffecb5', bg: '#3d2f03'} }, 
+        { name: "Papelera", slug: "trash", light: {color: '#dc3545', bg: '#f8d7da'}, dark: {color: '#dc3545', bg: '#f8d7da'}  },
       ];
       
     const getPostStatusBySlug = (slug) => {
@@ -82,7 +82,7 @@ const BlogPage = () => {
 
     return (
         <div className="p-4 max-w-6xl mx-auto">
-            <h1 className="text-xl font-semibold mb-4">Blogs</h1>
+            <h1 className="text-xl font-semibold mb-4">Administrar entradas</h1>
 
             <Tabs
                 defaultValue={selectedStatus}
@@ -122,7 +122,7 @@ const BlogPage = () => {
                                             <TableCell>
                                             <Badge
                                                 className={``}
-                                                style={{backgroundColor: getPostStatusBySlug(post.status)?.bg, color: getPostStatusBySlug(post.status)?.color}}
+                                                style={{backgroundColor: getPostStatusBySlug(post.status)?.light.bg, color: getPostStatusBySlug(post.status)?.light.color}}
                                                 variant="outline"
                                                 >
                                                 {getPostStatusBySlug(post.status)?.name}
