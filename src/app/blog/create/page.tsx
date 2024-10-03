@@ -18,9 +18,9 @@ const CreateProduct = () => {
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem>
-                <Link href="/blog">
-                  Blog
-                </Link>
+                  <Link href="/blog">
+                    Blog
+                  </Link>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
