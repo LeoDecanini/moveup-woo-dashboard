@@ -11,8 +11,8 @@ import Link from 'next/link'
 
 const CreateProduct = () => {
   return (
-    <section className="w-full h-full p-3 min-[1435px]:p-5 flex justify-center items-center">
-      <div className="w-full h-full max-w-[90rem] flex flex-col justify-between">
+    <section className="w-full min-h-full p-3 min-[1435px]:p-5 flex justify-center items-center">
+      <div className="w-full h-full max-w-[90rem] flex flex-col !pb-32 justify-between">
         <div>
           <div className="pb-3">
             <Breadcrumb>
