@@ -560,7 +560,7 @@ const CreateForm: React.FC<Props> = () => {
                   ))
                 }
               </div>
-              <Button onClick={() => setNewCategory(!newCategory)} variant={'outline'} className={'h-7'}
+              <Button onClick={() => setNewCategory(!newCategory)} variant={'outline'} className={''}
                       type={'button'}>{newCategory ? 'Cancelar' : 'Añadir nueva'}</Button>
               {
                 newCategory &&
@@ -601,7 +601,7 @@ const CreateForm: React.FC<Props> = () => {
                       </Select>
                     </div>
                     <div className={"mt-2"}>
-                      <Button className={""}>Añadir categoría</Button>
+                      <Button type={"button"} variant={"secondary"} className={"w-full"}>Añadir categoría</Button>
                     </div>
                   </div>
                 </>
