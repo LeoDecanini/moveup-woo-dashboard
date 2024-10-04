@@ -29,8 +29,10 @@ import { Checkbox } from '../ui/checkbox';
 import { Textarea } from '../ui/textarea';
 import axios from 'axios';
 import { ServerUrl } from '@/lib/utils';
+import { useWordpress } from '@/context/wordpress-context';
 
-interface Props { }
+interface Props {
+}
 
 interface Field {
   name: string;
@@ -86,6 +88,28 @@ const CreateForm: React.FC<Props> = () => {
   const [filters, setFilters] = useState({
     products: null,
   });
+
+  const [categories, setCategories] = useState<any[]>([]);
+  const [tags, setTags] = useState<any[]>([]);
+  const [parentCategory, setParentCategory] = useState<number | string>('none');
+  const [showParentCategory, setShowParentCategory] = useState<any>('none');
+
+  const { fetchCategories, fetchTags } = useWordpress();
+  const [newCategory, setNewCategory] = useState<boolean>(false);
+
+  function findCategoryById(id, categories) {
+    console.log({ id, categories });
+    return categories.find(category => category.id == id);
+  }
+
+  useEffect(() => {
+    fetchCategories().then((data) => {
+      setCategories(data);
+    });
+    fetchTags().then((data) => {
+      setTags(data);
+    });
+  }, []);
 
   const tabs = [
     {
@@ -162,7 +186,7 @@ const CreateForm: React.FC<Props> = () => {
   }, [editadData]);
 
   const [errorMessages, setErrorMessages] = useState<Record<string, string>>(
-    {}
+    {},
   );
 
   let fieldsDataTypeSimple: Section[] = [
@@ -198,7 +222,7 @@ const CreateForm: React.FC<Props> = () => {
               (field: any) =>
                 field.name !== 'stock_quantity' &&
                 field.name !== 'reserves' &&
-                field.name !== 'low_existens'
+                field.name !== 'low_existens',
             ),
           })),
         };
@@ -217,7 +241,7 @@ const CreateForm: React.FC<Props> = () => {
             fields: tab.fields.filter(
               (field: any) =>
                 field.name !== 'date_on_sale_from' &&
-                field.name !== 'date_on_sale_to'
+                field.name !== 'date_on_sale_to',
             ),
           })),
         };
@@ -300,18 +324,17 @@ const CreateForm: React.FC<Props> = () => {
 
     const validateData = validateForm();
 
-    if (!validateData) return
+    if (!validateData) return;
 
-    formData.status = "publish"
+    formData.status = 'publish';
 
-    console.log({formData});
+    console.log({ formData });
     try {
       const response = await axios.post(`${ServerUrl}/wordpress/posts`, {
-        userId: "66fcceab3f69e67d4843014a",
-          post: formData
-      }, {
-      });
-      console.log(response.data)
+        userId: '66fcceab3f69e67d4843014a',
+        post: formData,
+      }, {});
+      console.log(response.data);
     } catch (error) {
       console.log(error);
     } finally {
@@ -345,11 +368,14 @@ const CreateForm: React.FC<Props> = () => {
     });
   }, [attributes]);
 
+  console.log('parentCategory', parentCategory);
+
   return (
     <>
-      <div className="bg-white rounded-md shadow flex flex-col">
-        <div className="flex flex-col gap-3 min-[550px]:gap-0 min-[550px]:flex-row justify-between items-center w-full border-b p-3">
-          <h1 className="text-2xl sm:text-4xl text-secondary font-semibold">
+      <div className='bg-white rounded-md shadow flex flex-col'>
+        <div
+          className='flex flex-col gap-3 min-[550px]:gap-0 min-[550px]:flex-row justify-between items-center w-full border-b p-3'>
+          <h1 className='text-2xl sm:text-4xl text-secondary font-semibold'>
             Crear entrada
           </h1>
           {/* <Select
@@ -373,11 +399,11 @@ const CreateForm: React.FC<Props> = () => {
         </div>
       </div>
 
-      <form className="flex gap-4" onSubmit={handleSubmit}>
-        <div className="w-full">
+      <form className='flex gap-4' onSubmit={handleSubmit}>
+        <div className='w-full'>
           <>
             {fieldsDataTypeSimple.map((data, index) => (
-              <div className="grid grid-cols-2 min-[1400px]:grid-cols-3 gap-3 rounded-md mt-5 bg-white p-3 shadow">
+              <div className='grid grid-cols-2 min-[1400px]:grid-cols-3 gap-3 rounded-md mt-5 bg-white p-3 shadow'>
                 <h4 className={`col-span-2 min-[1400px]:col-span-3 border-b`}>
                   {data.title}
                 </h4>
@@ -388,12 +414,12 @@ const CreateForm: React.FC<Props> = () => {
                     <div>
                       <Label
                         className={`${errorMessages[fieldInfo.name] && 'text-accent'
-                          } flex items-center gap-1 pb-1`}
+                        } flex items-center gap-1 pb-1`}
                         htmlFor={fieldInfo.name}
                       >
                         {fieldInfo.label}{' '}
                         {fieldInfo.required && (
-                          <span className="text-accent">*</span>
+                          <span className='text-accent'>*</span>
                         )}{' '}
                       </Label>
 
@@ -415,7 +441,7 @@ const CreateForm: React.FC<Props> = () => {
                           />
                         </>
                       ) : (
-                        <div className="min-h-96">
+                        <div className='min-h-96'>
                           <div /* className="min-h-96 rounded-lg border bg-background shadow" */>
                             {/* <PlateEditor /> */}
                             <Textarea
@@ -430,7 +456,7 @@ const CreateForm: React.FC<Props> = () => {
                               }}
                               value={formData[fieldInfo.name] || ''}
                               name={fieldInfo.name}
-                              className="min-h-96"
+                              className='min-h-96'
 
                             />
                           </div>
@@ -438,7 +464,7 @@ const CreateForm: React.FC<Props> = () => {
                       )}
 
                       {errorMessages[fieldInfo.name] && (
-                        <p className="text-accent text-[13px]">
+                        <p className='text-accent text-[13px]'>
                           {errorMessages[fieldInfo.name]}
                         </p>
                       )}
@@ -450,52 +476,52 @@ const CreateForm: React.FC<Props> = () => {
           </>
         </div>
 
-        <div className="flex flex-col gap-4 mt-5 w-96">
-          <div className="bg-white rounded-md shadow">
-            <div className="flex flex-col gap-2 p-3">
+        <div className='flex flex-col gap-4 mt-5 w-96'>
+          <div className='bg-white rounded-md shadow'>
+            <div className='flex flex-col gap-2 p-3'>
               <h3>Publicar</h3>
 
-              <div className="flex flex-col gap-2 ">
-                <div className="flex items-center gap-2 text-[13px]">
+              <div className='flex flex-col gap-2 '>
+                <div className='flex items-center gap-2 text-[13px]'>
                   <BsPinFill /> <span>Estado: Borrador</span>{' '}
                   <Button
-                    type="button"
-                    className="p-0 h-0 text-[13px]"
+                    type='button'
+                    className='p-0 h-0 text-[13px]'
                     variant={'link'}
                   >
                     editar
                   </Button>
                 </div>
 
-                <div className="flex items-center gap-2 text-[13px]">
+                <div className='flex items-center gap-2 text-[13px]'>
                   <BsPinFill /> <span>Visibilidad: Pública</span>{' '}
                   <Button
-                    type="button"
-                    className="p-0 h-0 text-[13px]"
+                    type='button'
+                    className='p-0 h-0 text-[13px]'
                     variant={'link'}
                   >
                     editar
                   </Button>
                 </div>
 
-                <div className="flex items-center gap-2 text-[13px]">
+                <div className='flex items-center gap-2 text-[13px]'>
                   <BsPinFill /> <span>Publicar inmediatamente</span>{' '}
                   <Button
-                    type="button"
-                    className="p-0 h-0 text-[13px]"
+                    type='button'
+                    className='p-0 h-0 text-[13px]'
                     variant={'link'}
                   >
                     editar
                   </Button>
                 </div>
 
-                <div className="flex items-center gap-2 text-[13px]">
+                <div className='flex items-center gap-2 text-[13px]'>
                   <span>
                     Visibilidad catálogo: En la tienda y en los resultados de
                     búsqueda
                     <Button
-                      type="button"
-                      className=" ml-1 p-0 h-0 text-[13px]"
+                      type='button'
+                      className=' ml-1 p-0 h-0 text-[13px]'
                       variant={'link'}
                     >
                       editar
@@ -505,23 +531,86 @@ const CreateForm: React.FC<Props> = () => {
               </div>
             </div>
 
-            <div className="p-3 border-t">
-              <div className="w-full pt-1 flex justify-between">
-                <Button type="button" variant={'outline'}>
+            <div className='p-3 border-t'>
+              <div className='w-full pt-1 flex justify-between'>
+                <Button type='button' variant={'outline'}>
                   Guardar borrador
                 </Button>
-                <Button >Publicar</Button>
+                <Button>Publicar</Button>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-md shadow">
-            <div className="flex flex-col gap-2 p-3">
+          <div className='bg-white rounded-md shadow'>
+            <div className='flex flex-col gap-2 p-3'>
               <h3>Categorias</h3>
+              <div className={'flex flex-col gap-2 max-h-44 pb-1 h-full overflow-auto'}>
+                {
+                  categories.map((category) => (
+                    <div key={category.id} className={'flex items-center gap-1.5'}>
+                      <Checkbox
+                        id={category.id}
+                        label={category.name}
+                        onChange={(e) => {
+                          console.log(e.target.checked);
+                        }}
+                      />
+                      <Label htmlFor={category.id}>{category.name}</Label>
+                    </div>
+                  ))
+                }
+              </div>
+              <Button onClick={() => setNewCategory(!newCategory)} variant={'outline'} className={'h-7'}
+                      type={'button'}>{newCategory ? 'Cancelar' : 'Añadir nueva'}</Button>
+              {
+                newCategory &&
+                <>
+                  <div className='p-2 bg-gray-50 rounded'>
+                    <div className={'text-md'}>
+                      <Label forHtml={'createCategory'}>Nombre de la nueva categoría</Label>
+                      <Input id={'createCategory'} name={'createCategory'} placeholder={''} />
+                    </div>
+                    <div className={'text-md'}>
+                      <Label>Categoría padre</Label>
+                      <Select
+                        onValueChange={(value) => {
+                          setParentCategory(value);
+                          if (value === 'none') {
+                            setShowParentCategory(null);
+                          } else {
+                            const selectedCategory = findCategoryById(value, categories);
+                            console.log(selectedCategory);
+                            setShowParentCategory(selectedCategory);
+                          }
+                        }}
+                        defaultValue='none'
+                      >
+                        <SelectTrigger className='w-full'>
+                          <SelectValue placeholder='Seleccione la categoría padre'>
+                            {showParentCategory ? showParentCategory.name : 'Seleccione la categoría padre'}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value='none'>Ninguna</SelectItem>
+                          {categories.map((category) => (
+                            <SelectItem key={category.id} value={category.id}>
+                              {category.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className={"mt-2"}>
+                      <Button className={""}>Añadir categoría</Button>
+                    </div>
+                  </div>
+                </>
+              }
+
             </div>
           </div>
-          <div className="bg-white rounded-md shadow">
-            <div className="flex flex-col gap-2 p-3">
+          <div className='bg-white rounded-md shadow'>
+            <div className='flex flex-col gap-2 p-3'>
               <h3>Etiquetas</h3>
             </div>
           </div>

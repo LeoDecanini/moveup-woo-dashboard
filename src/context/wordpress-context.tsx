@@ -38,13 +38,13 @@ const WordpressProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const fetchCategories = async () => {
     const response = await axios.get(`${ServerUrl}/wordpress/categories?userId=${completeUser._id}`);
     console.log("categories", response.data)
-    setCategories(response.data);
+    return response.data
   };
 
   const fetchTags = async () => {
     const response = await axios.get(`${ServerUrl}/wordpress/tags?userId=${completeUser._id}`);
     console.log("tags", response.data)
-    setTags(response.data);
+    return response.data
   };
 
   const [post, setPost] = useState(null);

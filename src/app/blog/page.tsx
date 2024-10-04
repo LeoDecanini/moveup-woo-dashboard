@@ -153,7 +153,7 @@ const BlogPage = () => {
                 ) : (
                   postsByStatus[selectedStatus].map((post, index) => (
                     <TableRow key={index}>
-                      <TableCell className='font-medium'>{post.title.rendered}</TableCell>
+                      <TableCell className='font-medium'>{post.title.rendered || <em className={"opacity-70"}>Sin título</em>}</TableCell>
                       <TableCell>
                         <Badge
                           className={``}

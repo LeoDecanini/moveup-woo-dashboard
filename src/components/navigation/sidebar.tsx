@@ -141,7 +141,7 @@ const Sidebar = ({
           {/* <NavBar /> */}
 
           <div className="transition-all duration-300 overflow-hidden h-svh bg-white shadow-xl dark:bg-black w-full rounded-2xl">
-            <div className="mt-5 transition-all duration-300 overflow-auto h-full bg-white shadow-xl dark:bg-black w-full">
+            <div className="pt-5 transition-all duration-300 overflow-auto h-full bg-white shadow-xl dark:bg-black w-full">
               {children}
             </div>
           </div>
