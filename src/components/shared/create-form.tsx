@@ -2,6 +2,7 @@
 
 /* React */
 import React, { FormEvent, useEffect, useState } from 'react';
+import { BsPinFill } from 'react-icons/bs';
 import { FaSearch } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 
@@ -421,7 +422,7 @@ const CreateForm: React.FC<Props> = () => {
           ],
         },
       ],
-    } ,
+    },
   ];
 
   if (formData['inventory_management'] !== true) {
@@ -595,556 +596,618 @@ const CreateForm: React.FC<Props> = () => {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit}>
+      <form className={"flex gap-4"} onSubmit={handleSubmit}>
         <>
-          {fieldsDataTypeSimple.map((data, index) => (
-            <div className="grid grid-cols-2 min-[1400px]:grid-cols-3 gap-3 rounded-md mt-5 bg-white p-3 shadow">
-              <h4 className={`col-span-2 min-[1400px]:col-span-3 border-b`}>
-                {data.title}
-              </h4>
+          <div>
+            {fieldsDataTypeSimple.map((data, index) => (
+              <div className="grid grid-cols-2 min-[1400px]:grid-cols-3 gap-3 rounded-md mt-5 bg-white p-3 shadow">
+                <h4 className={`col-span-2 min-[1400px]:col-span-3 border-b`}>
+                  {data.title}
+                </h4>
 
-              {'type' in data ? (
-                <div className="col-span-2 min-[1400px]:col-span-3 border rounded">
-                  <Tabs
-                    defaultValue="general"
-                    className="flex items-start h-full !w-full"
-                  >
-                    <TabsList className="gap-0 p-0 flex flex-col justify-start items-start border-r rounded-none h-full bg-muted w-[230px]">
-                      {tabs.map(
-                        ({ value, label, condition }) =>
-                          condition(data) && (
-                            <TabsTrigger
-                              key={value}
-                              className="!rounded-none w-full !items-start justify-start px-3 py-2 border-b"
-                              value={value}
-                            >
-                              {label}
-                            </TabsTrigger>
-                          )
-                      )}
-                    </TabsList>
+                {'type' in data ? (
+                  <div className="col-span-2 min-[1400px]:col-span-3 border rounded">
+                    <Tabs
+                      defaultValue="general"
+                      className="flex items-start h-full !w-full"
+                    >
+                      <TabsList className="gap-0 p-0 flex flex-col justify-start items-start border-r rounded-none h-full bg-muted w-[230px]">
+                        {tabs.map(
+                          ({ value, label, condition }) =>
+                            condition(data) && (
+                              <TabsTrigger
+                                key={value}
+                                className="!rounded-none w-full !items-start justify-start px-3 py-2 border-b"
+                                value={value}
+                              >
+                                {label}
+                              </TabsTrigger>
+                            )
+                        )}
+                      </TabsList>
 
-                    <div className="!w-full h-full p-3">
-                      {data.tabs.map((tab) => (
-                        <TabsContent
-                          key={tab.value}
-                          className="!w-full grid gap-y-5 gap-x-3 m-0"
-                          value={tab.value || ''}
-                        >
-                          {tab.value === 'attributes' ? (
-                            <div className=" w-full">
-                              <div className="w-full flex items-center gap-2 pb-3">
-                                <Button
-                                  variant={'outline'}
-                                  onClick={() => {
-                                    setAttributes((prev: any) => [
-                                      ...prev,
-                                      {
-                                        id: Date.now(),
-                                        name: '',
-                                        options: [
-                                          {
-                                            id: Date.now(),
-                                            name: 'Valor 1',
-                                            value: '',
-                                          },
-                                        ],
-                                        visible: false,
-                                        save: false,
-                                      },
-                                    ]);
-                                  }}
-                                  className="bg-transparent hidden sm:block border-primary h-8 py-0 hover:text-primary px-5 text-primary hover:bg-primary/10"
-                                  type="button"
-                                >
-                                  Crear nuevo
-                                </Button>
+                      <div className="!w-full h-full p-3">
+                        {data.tabs.map((tab) => (
+                          <TabsContent
+                            key={tab.value}
+                            className="!w-full grid gap-y-5 gap-x-3 m-0"
+                            value={tab.value || ''}
+                          >
+                            {tab.value === 'attributes' ? (
+                              <div className=" w-full">
+                                <div className="w-full flex items-center gap-2 pb-3">
+                                  <Button
+                                    variant={'outline'}
+                                    onClick={() => {
+                                      setAttributes((prev: any) => [
+                                        ...prev,
+                                        {
+                                          id: Date.now(),
+                                          name: '',
+                                          options: [
+                                            {
+                                              id: Date.now(),
+                                              name: 'Valor 1',
+                                              value: '',
+                                            },
+                                          ],
+                                          visible: false,
+                                          save: false,
+                                        },
+                                      ]);
+                                    }}
+                                    className="bg-transparent hidden sm:block border-primary h-8 py-0 hover:text-primary px-5 text-primary hover:bg-primary/10"
+                                    type="button"
+                                  >
+                                    Crear nuevo
+                                  </Button>
 
-                                <Select
-                                  onValueChange={(value) => {
-                                    setExistingAttribute(value);
-                                  }}
-                                >
-                                  <SelectTrigger className="w-[170px]">
-                                    <SelectValue placeholder="añadir existente" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value={'colors'}>
-                                      Colores
-                                    </SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
+                                  <Select
+                                    onValueChange={(value) => {
+                                      setExistingAttribute(value);
+                                    }}
+                                  >
+                                    <SelectTrigger className="w-[170px]">
+                                      <SelectValue placeholder="añadir existente" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value={'colors'}>
+                                        Colores
+                                      </SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
 
-                              <div className="flex flex-col gap-3">
-                                {attributes && attributes.length !== 0 && (
-                                  <>
-                                    {attributes.map(
-                                      (attribute: any, attrIndex: number) => (
-                                        <div
-                                          className="relative p-2 border rounded-md"
-                                          key={attribute?.id}
-                                        >
-                                          <div className="absolute right-2 flex items-center gap-2">
-                                            <Button
-                                              variant={'outline'}
-                                              onClick={() => {
-                                                setAttributes((prev: any) =>
-                                                  prev.map(
-                                                    (
-                                                      attr: any,
-                                                      index: number
-                                                    ) => {
-                                                      if (index === attrIndex) {
-                                                        return {
-                                                          ...attr,
-                                                          options: [
-                                                            ...attr.options,
-                                                            {
-                                                              id: Date.now(),
-                                                              name: `Valor ${
-                                                                attr.options
-                                                                  .length + 1
-                                                              }`,
-                                                              value: '',
-                                                              save: false,
-                                                            },
-                                                          ],
-                                                        };
+                                <div className="flex flex-col gap-3">
+                                  {attributes && attributes.length !== 0 && (
+                                    <>
+                                      {attributes.map(
+                                        (attribute: any, attrIndex: number) => (
+                                          <div
+                                            className="relative p-2 border rounded-md"
+                                            key={attribute?.id}
+                                          >
+                                            <div className="absolute right-2 flex items-center gap-2">
+                                              <Button
+                                                variant={'outline'}
+                                                onClick={() => {
+                                                  setAttributes((prev: any) =>
+                                                    prev.map(
+                                                      (
+                                                        attr: any,
+                                                        index: number
+                                                      ) => {
+                                                        if (
+                                                          index === attrIndex
+                                                        ) {
+                                                          return {
+                                                            ...attr,
+                                                            options: [
+                                                              ...attr.options,
+                                                              {
+                                                                id: Date.now(),
+                                                                name: `Valor ${
+                                                                  attr.options
+                                                                    .length + 1
+                                                                }`,
+                                                                value: '',
+                                                                save: false,
+                                                              },
+                                                            ],
+                                                          };
+                                                        }
+                                                        return attr;
                                                       }
-                                                      return attr;
-                                                    }
-                                                  )
-                                                );
-                                              }}
-                                              className="bg-transparent hidden sm:block border-secondary h-8 py-0 hover:text-secondary px-5 text-secondary hover:bg-secondary/10"
-                                              type="button"
-                                            >
-                                              Agregar valor
-                                            </Button>
+                                                    )
+                                                  );
+                                                }}
+                                                className="bg-transparent hidden sm:block border-secondary h-8 py-0 hover:text-secondary px-5 text-secondary hover:bg-secondary/10"
+                                                type="button"
+                                              >
+                                                Agregar valor
+                                              </Button>
 
-                                            <Button
-                                              variant={'outline'}
-                                              onClick={() => {
-                                                setAttributes((prev: any) =>
-                                                  prev.filter(
-                                                    (_: any, index: number) =>
-                                                      index !== attrIndex
-                                                  )
-                                                );
-                                              }}
-                                              className="bg-transparent hidden sm:block border-accent h-8 py-0 hover:text-accent px-5 text-accent hover:bg-accent/10"
-                                              type="button"
-                                            >
-                                              Eliminar Atributo
-                                            </Button>
-                                          </div>
+                                              <Button
+                                                variant={'outline'}
+                                                onClick={() => {
+                                                  setAttributes((prev: any) =>
+                                                    prev.filter(
+                                                      (_: any, index: number) =>
+                                                        index !== attrIndex
+                                                    )
+                                                  );
+                                                }}
+                                                className="bg-transparent hidden sm:block border-accent h-8 py-0 hover:text-accent px-5 text-accent hover:bg-accent/10"
+                                                type="button"
+                                              >
+                                                Eliminar Atributo
+                                              </Button>
+                                            </div>
 
-                                          <div className="absolute right-2 bottom-2 flex items-center gap-2">
-                                            <Button
-                                              variant={'secondary'}
-                                              onClick={() => {
-                                                setAttributes((prev: any) =>
-                                                  prev.map(
-                                                    (
-                                                      attr: any,
-                                                      index: number
-                                                    ) => {
-                                                      if (index === attrIndex) {
-                                                        return {
-                                                          ...attr,
-                                                          save: true,
-                                                        };
+                                            <div className="absolute right-2 bottom-2 flex items-center gap-2">
+                                              <Button
+                                                variant={'secondary'}
+                                                onClick={() => {
+                                                  setAttributes((prev: any) =>
+                                                    prev.map(
+                                                      (
+                                                        attr: any,
+                                                        index: number
+                                                      ) => {
+                                                        if (
+                                                          index === attrIndex
+                                                        ) {
+                                                          return {
+                                                            ...attr,
+                                                            save: true,
+                                                          };
+                                                        }
+                                                        return attr;
                                                       }
-                                                      return attr;
-                                                    }
-                                                  )
-                                                );
-                                              }}
-                                              className="px-10"
-                                              type="button"
-                                            >
-                                              Guardar
-                                            </Button>
-                                          </div>
+                                                    )
+                                                  );
+                                                }}
+                                                className="px-10"
+                                                type="button"
+                                              >
+                                                Guardar
+                                              </Button>
+                                            </div>
 
-                                          <div>
-                                            <Label
-                                              className={`${
-                                                errorMessages[attribute?.id] &&
-                                                'text-accent'
-                                              } flex items-center gap-1 pb-1`}
-                                              htmlFor={attribute?.name}
-                                            >
-                                              Nombre
-                                            </Label>
+                                            <div>
+                                              <Label
+                                                className={`${
+                                                  errorMessages[
+                                                    attribute?.id
+                                                  ] && 'text-accent'
+                                                } flex items-center gap-1 pb-1`}
+                                                htmlFor={attribute?.name}
+                                              >
+                                                Nombre
+                                              </Label>
 
-                                            <Input
-                                              id={attribute?.name}
-                                              type={attribute?.type}
-                                              onChange={(event) => {
-                                                const value =
-                                                  event.target.value;
+                                              <Input
+                                                id={attribute?.name}
+                                                type={attribute?.type}
+                                                onChange={(event) => {
+                                                  const value =
+                                                    event.target.value;
 
-                                                setAttributes((prev: any) =>
-                                                  prev.map(
-                                                    (
-                                                      attr: any,
-                                                      index: number
-                                                    ) => {
-                                                      if (index === attrIndex) {
-                                                        return {
-                                                          ...attr,
-                                                          name: value,
-                                                        };
+                                                  setAttributes((prev: any) =>
+                                                    prev.map(
+                                                      (
+                                                        attr: any,
+                                                        index: number
+                                                      ) => {
+                                                        if (
+                                                          index === attrIndex
+                                                        ) {
+                                                          return {
+                                                            ...attr,
+                                                            name: value,
+                                                          };
+                                                        }
+                                                        return attr;
                                                       }
-                                                      return attr;
-                                                    }
-                                                  )
-                                                );
+                                                    )
+                                                  );
 
-                                                validateField(
-                                                  attribute?.name,
-                                                  value
-                                                );
-                                              }}
-                                              value={attribute?.name || ''}
-                                              name={attribute?.name}
-                                              className="max-w-[400px]"
-                                            />
+                                                  validateField(
+                                                    attribute?.name,
+                                                    value
+                                                  );
+                                                }}
+                                                value={attribute?.name || ''}
+                                                name={attribute?.name}
+                                                className="max-w-[400px]"
+                                              />
 
-                                            {errorMessages[attribute?.id] && (
-                                              <p className="text-accent text-xs">
-                                                {errorMessages[attribute?.id]}
-                                              </p>
-                                            )}
-                                          </div>
-
-                                          <div className="pt-3">
-                                            <Label className="flex items-center gap-1 pb-1">
-                                              Valores
-                                            </Label>
-                                            <div className="w-full grid grid-cols-5 gap-2">
-                                              {attribute?.options.map(
-                                                (
-                                                  option: any,
-                                                  optIndex: number
-                                                ) => (
-                                                  <div
-                                                    key={optIndex}
-                                                    className="relative"
-                                                  >
-                                                    <Input
-                                                      key={option.id}
-                                                      id={option.name}
-                                                      type="text"
-                                                      onChange={(event) => {
-                                                        const value =
-                                                          event.target.value;
-                                                        setAttributes(
-                                                          (prev: any) =>
-                                                            prev.map(
-                                                              (
-                                                                attr: any,
-                                                                index: number
-                                                              ) => {
-                                                                if (
-                                                                  index ===
-                                                                  attrIndex
-                                                                ) {
-                                                                  const updatedOptions =
-                                                                    attr.options.map(
-                                                                      (
-                                                                        opt: any,
-                                                                        i: number
-                                                                      ) => {
-                                                                        if (
-                                                                          i ===
-                                                                          optIndex
-                                                                        ) {
-                                                                          return {
-                                                                            ...opt,
-                                                                            value,
-                                                                          };
-                                                                        }
-                                                                        return opt;
-                                                                      }
-                                                                    );
-                                                                  return {
-                                                                    ...attr,
-                                                                    options:
-                                                                      updatedOptions,
-                                                                  };
-                                                                }
-                                                                return attr;
-                                                              }
-                                                            )
-                                                        );
-                                                      }}
-                                                      value={option.value}
-                                                      name={option.name}
-                                                      className="max-w-[400px]"
-                                                      placeholder={option.name}
-                                                    />
-                                                    <IoClose
-                                                      className="text-accent absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer"
-                                                      onClick={() => {
-                                                        setAttributes(
-                                                          (prev: any) =>
-                                                            prev.map(
-                                                              (
-                                                                attr: any,
-                                                                index: number
-                                                              ) => {
-                                                                if (
-                                                                  index ===
-                                                                  attrIndex
-                                                                ) {
-                                                                  return {
-                                                                    ...attr,
-                                                                    options:
-                                                                      attr.options.filter(
-                                                                        (
-                                                                          o: any
-                                                                        ) =>
-                                                                          o.id !==
-                                                                          option.id
-                                                                      ),
-                                                                  };
-                                                                }
-                                                                return attr;
-                                                              }
-                                                            )
-                                                        );
-                                                      }}
-                                                    />
-                                                  </div>
-                                                )
+                                              {errorMessages[attribute?.id] && (
+                                                <p className="text-accent text-xs">
+                                                  {errorMessages[attribute?.id]}
+                                                </p>
                                               )}
                                             </div>
-                                          </div>
 
-                                          <div className="flex items-center space-x-2 pt-3">
-                                            <Checkbox
-                                              onCheckedChange={(checked) => {
-                                                setAttributes((prev: any) =>
-                                                  prev.map(
-                                                    (
-                                                      attr: any,
-                                                      index: number
-                                                    ) => {
-                                                      if (index === attrIndex) {
-                                                        return {
-                                                          ...attr,
-                                                          visible: checked,
-                                                        };
-                                                      }
-                                                      return attr;
-                                                    }
+                                            <div className="pt-3">
+                                              <Label className="flex items-center gap-1 pb-1">
+                                                Valores
+                                              </Label>
+                                              <div className="w-full grid grid-cols-5 gap-2">
+                                                {attribute?.options.map(
+                                                  (
+                                                    option: any,
+                                                    optIndex: number
+                                                  ) => (
+                                                    <div
+                                                      key={optIndex}
+                                                      className="relative"
+                                                    >
+                                                      <Input
+                                                        key={option.id}
+                                                        id={option.name}
+                                                        type="text"
+                                                        onChange={(event) => {
+                                                          const value =
+                                                            event.target.value;
+                                                          setAttributes(
+                                                            (prev: any) =>
+                                                              prev.map(
+                                                                (
+                                                                  attr: any,
+                                                                  index: number
+                                                                ) => {
+                                                                  if (
+                                                                    index ===
+                                                                    attrIndex
+                                                                  ) {
+                                                                    const updatedOptions =
+                                                                      attr.options.map(
+                                                                        (
+                                                                          opt: any,
+                                                                          i: number
+                                                                        ) => {
+                                                                          if (
+                                                                            i ===
+                                                                            optIndex
+                                                                          ) {
+                                                                            return {
+                                                                              ...opt,
+                                                                              value,
+                                                                            };
+                                                                          }
+                                                                          return opt;
+                                                                        }
+                                                                      );
+                                                                    return {
+                                                                      ...attr,
+                                                                      options:
+                                                                        updatedOptions,
+                                                                    };
+                                                                  }
+                                                                  return attr;
+                                                                }
+                                                              )
+                                                          );
+                                                        }}
+                                                        value={option.value}
+                                                        name={option.name}
+                                                        className="max-w-[400px]"
+                                                        placeholder={
+                                                          option.name
+                                                        }
+                                                      />
+                                                      <IoClose
+                                                        className="text-accent absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer"
+                                                        onClick={() => {
+                                                          setAttributes(
+                                                            (prev: any) =>
+                                                              prev.map(
+                                                                (
+                                                                  attr: any,
+                                                                  index: number
+                                                                ) => {
+                                                                  if (
+                                                                    index ===
+                                                                    attrIndex
+                                                                  ) {
+                                                                    return {
+                                                                      ...attr,
+                                                                      options:
+                                                                        attr.options.filter(
+                                                                          (
+                                                                            o: any
+                                                                          ) =>
+                                                                            o.id !==
+                                                                            option.id
+                                                                        ),
+                                                                    };
+                                                                  }
+                                                                  return attr;
+                                                                }
+                                                              )
+                                                          );
+                                                        }}
+                                                      />
+                                                    </div>
                                                   )
-                                                );
-                                              }}
-                                              defaultChecked={
-                                                attribute?.visible
-                                              }
-                                              id={`${attribute?.name}-visible`}
-                                            />
-                                            <label
-                                              htmlFor={`${attribute?.name}`}
-                                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                            >
-                                              Visible en la pagina de productos
-                                            </label>
-                                          </div>
-                                        </div>
-                                      )
-                                    )}
-                                  </>
-                                )}
-                              </div>
-                            </div>
-                          ) : tab.value === 'variations' ? (
-                            <>
-                              <div className="w-full h-[198px] flex justify-center flex-col text-center">
-                                {variations?.length === 0 ||
-                                variations === null ? (
-                                  <p>
-                                    Añade algunos atributos en la pestaña
-                                    Atributos para generar variaciones.
-                                    Asegúrate de marcar la casilla Usado para
-                                    variaciones.
-                                  </p>
-                                ) : null}
-                              </div>
-                            </>
-                          ) : (
-                            <>
-                              {tab.fields &&
-                                tab.fields.map((fieldInfo) => (
-                                  <>
-                                    <div
-                                      key={`${fieldInfo.name}`}
-                                      className={`${fieldInfo.colSpan} ${
-                                        (fieldInfo.name ===
-                                          'sold_individually' ||
-                                          fieldInfo.name ===
-                                            'shipping_class') &&
-                                        'border-t pt-4'
-                                      }`}
-                                    >
-                                      <div className="flex items-start gap-2">
-                                        <Label
-                                          className={`${
-                                            errorMessages[fieldInfo.name] &&
-                                            'text-accent'
-                                          } flex items-center gap-1 pb-1 max-w-[200px] w-full line-clamp-2`}
-                                          htmlFor={fieldInfo.name}
-                                        >
-                                          {fieldInfo.label}{' '}
-                                          {fieldInfo.required && (
-                                            <span className="text-accent">
-                                              *
-                                            </span>
-                                          )}
-                                        </Label>
+                                                )}
+                                              </div>
+                                            </div>
 
-                                        {fieldInfo.type === 'check' ? (
-                                          <div className="flex items-center space-x-2">
-                                            <Checkbox
-                                              onCheckedChange={(value) => {
+                                            <div className="flex items-center space-x-2 pt-3">
+                                              <Checkbox
+                                                onCheckedChange={(checked) => {
+                                                  setAttributes((prev: any) =>
+                                                    prev.map(
+                                                      (
+                                                        attr: any,
+                                                        index: number
+                                                      ) => {
+                                                        if (
+                                                          index === attrIndex
+                                                        ) {
+                                                          return {
+                                                            ...attr,
+                                                            visible: checked,
+                                                          };
+                                                        }
+                                                        return attr;
+                                                      }
+                                                    )
+                                                  );
+                                                }}
+                                                defaultChecked={
+                                                  attribute?.visible
+                                                }
+                                                id={`${attribute?.name}-visible`}
+                                              />
+                                              <label
+                                                htmlFor={`${attribute?.name}`}
+                                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                              >
+                                                Visible en la pagina de
+                                                productos
+                                              </label>
+                                            </div>
+                                          </div>
+                                        )
+                                      )}
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            ) : tab.value === 'variations' ? (
+                              <>
+                                <div className="w-full h-[198px] flex justify-center flex-col text-center">
+                                  {variations?.length === 0 ||
+                                  variations === null ? (
+                                    <p>
+                                      Añade algunos atributos en la pestaña
+                                      Atributos para generar variaciones.
+                                      Asegúrate de marcar la casilla Usado para
+                                      variaciones.
+                                    </p>
+                                  ) : null}
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                {tab.fields &&
+                                  tab.fields.map((fieldInfo) => (
+                                    <>
+                                      <div
+                                        key={`${fieldInfo.name}`}
+                                        className={`${fieldInfo.colSpan} ${
+                                          (fieldInfo.name ===
+                                            'sold_individually' ||
+                                            fieldInfo.name ===
+                                              'shipping_class') &&
+                                          'border-t pt-4'
+                                        }`}
+                                      >
+                                        <div className="flex items-start gap-2">
+                                          <Label
+                                            className={`${
+                                              errorMessages[fieldInfo.name] &&
+                                              'text-accent'
+                                            } flex items-center gap-1 pb-1 max-w-[200px] w-full line-clamp-2`}
+                                            htmlFor={fieldInfo.name}
+                                          >
+                                            {fieldInfo.label}{' '}
+                                            {fieldInfo.required && (
+                                              <span className="text-accent">
+                                                *
+                                              </span>
+                                            )}
+                                          </Label>
+
+                                          {fieldInfo.type === 'check' ? (
+                                            <div className="flex items-center space-x-2">
+                                              <Checkbox
+                                                onCheckedChange={(value) => {
+                                                  setFormData(
+                                                    (prevFormData) => ({
+                                                      ...prevFormData,
+                                                      [fieldInfo.name]: value,
+                                                    })
+                                                  );
+                                                }}
+                                                defaultChecked={
+                                                  formData[fieldInfo.name]
+                                                }
+                                                id={`${fieldInfo.name}-${fieldInfo.type}`}
+                                              />
+                                              <label
+                                                htmlFor={`${fieldInfo.name}-${fieldInfo.type}`}
+                                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                              >
+                                                {fieldInfo.text}
+                                              </label>
+                                            </div>
+                                          ) : fieldInfo.type === 'radio' ? (
+                                            <RadioGroup
+                                              onValueChange={(value) => {
                                                 setFormData((prevFormData) => ({
                                                   ...prevFormData,
                                                   [fieldInfo.name]: value,
                                                 }));
                                               }}
-                                              defaultChecked={
+                                              defaultValue={
                                                 formData[fieldInfo.name]
                                               }
-                                              id={`${fieldInfo.name}-${fieldInfo.type}`}
-                                            />
-                                            <label
-                                              htmlFor={`${fieldInfo.name}-${fieldInfo.type}`}
-                                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                                             >
-                                              {fieldInfo.text}
-                                            </label>
-                                          </div>
-                                        ) : fieldInfo.type === 'radio' ? (
-                                          <RadioGroup
-                                            onValueChange={(value) => {
-                                              setFormData((prevFormData) => ({
-                                                ...prevFormData,
-                                                [fieldInfo.name]: value,
-                                              }));
-                                            }}
-                                            defaultValue={
-                                              formData[fieldInfo.name]
-                                            }
-                                          >
-                                            {fieldInfo.options &&
-                                              fieldInfo.options.map(
-                                                (option) => (
-                                                  <div
-                                                    key={option.value}
-                                                    className="flex items-center space-x-2"
-                                                  >
-                                                    <RadioGroupItem
-                                                      value={option.value}
-                                                      id={option.value}
-                                                    />
-                                                    <Label
-                                                      htmlFor={option.value}
-                                                    >
-                                                      {option.label}
-                                                    </Label>
-                                                  </div>
-                                                )
-                                              )}
-                                          </RadioGroup>
-                                        ) : fieldInfo.type === 'select' ? (
-                                          <Select
-                                            onValueChange={(value) => {
-                                              setFormData((prevFormData) => ({
-                                                ...prevFormData,
-                                                [fieldInfo.name]: value,
-                                              }));
-                                            }}
-                                            defaultValue={
-                                              formData[fieldInfo.name] || 'any'
-                                            }
-                                          >
-                                            <SelectTrigger className="w-[400px]">
-                                              <SelectValue placeholder="Tipo de clase de envio" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                              {fieldInfo.search && (
-                                                <div className="flex items-center w-full max-w-md">
-                                                  <div className="border-y border-l h-10 w-10 flex justify-center items-center rounded-l-lg">
-                                                    <FaSearch />
-                                                  </div>
-                                                  <Input
-                                                    className="rounded-none border-x-0 border-y focus-visible:ring-0 px-0 h-10"
-                                                    type="text"
-                                                    placeholder="Buscar..."
-                                                    onChange={
-                                                      handleSearchChange
-                                                    }
-                                                    value={
-                                                      filters.products || ''
-                                                    }
-                                                  />
-                                                  <div
-                                                    className="border-y border-r h-10 w-10 flex justify-center items-center rounded-r-lg cursor-pointer"
-                                                    onClick={handleClearSearch}
-                                                  >
-                                                    <IoClose />
-                                                  </div>
-                                                </div>
-                                              )}
-
                                               {fieldInfo.options &&
                                                 fieldInfo.options.map(
                                                   (option) => (
-                                                    <SelectItem
-                                                      value={option.formdata}
+                                                    <div
+                                                      key={option.value}
+                                                      className="flex items-center space-x-2"
                                                     >
-                                                      {option.label}
-                                                    </SelectItem>
+                                                      <RadioGroupItem
+                                                        value={option.value}
+                                                        id={option.value}
+                                                      />
+                                                      <Label
+                                                        htmlFor={option.value}
+                                                      >
+                                                        {option.label}
+                                                      </Label>
+                                                    </div>
                                                   )
                                                 )}
-                                            </SelectContent>
-                                          </Select>
-                                        ) : fieldInfo.type === 'options' ? (
-                                          <>
-                                            <Button
-                                              onClick={() => {
+                                            </RadioGroup>
+                                          ) : fieldInfo.type === 'select' ? (
+                                            <Select
+                                              onValueChange={(value) => {
                                                 setFormData((prevFormData) => ({
                                                   ...prevFormData,
-                                                  [fieldInfo.name]:
-                                                    !prevFormData[
-                                                      fieldInfo.name
-                                                    ],
+                                                  [fieldInfo.name]: value,
                                                 }));
                                               }}
-                                              type="button"
-                                              className="p-0 h-0"
-                                              variant={'link'}
+                                              defaultValue={
+                                                formData[fieldInfo.name] ||
+                                                'any'
+                                              }
                                             >
-                                              {formData[fieldInfo.name]
-                                                ? 'Cancelar'
-                                                : 'Programar'}
-                                            </Button>
-                                          </>
-                                        ) : (
-                                          <>
-                                            {fieldInfo.name === 'dimensions' ? (
-                                              <div className="flex items-center gap-2 max-w-[400px] w-full">
-                                                {fieldInfo?.options &&
-                                                  fieldInfo?.options.map(
+                                              <SelectTrigger className="w-[400px]">
+                                                <SelectValue placeholder="Tipo de clase de envio" />
+                                              </SelectTrigger>
+                                              <SelectContent>
+                                                {fieldInfo.search && (
+                                                  <div className="flex items-center w-full max-w-md">
+                                                    <div className="border-y border-l h-10 w-10 flex justify-center items-center rounded-l-lg">
+                                                      <FaSearch />
+                                                    </div>
+                                                    <Input
+                                                      className="rounded-none border-x-0 border-y focus-visible:ring-0 px-0 h-10"
+                                                      type="text"
+                                                      placeholder="Buscar..."
+                                                      onChange={
+                                                        handleSearchChange
+                                                      }
+                                                      value={
+                                                        filters.products || ''
+                                                      }
+                                                    />
+                                                    <div
+                                                      className="border-y border-r h-10 w-10 flex justify-center items-center rounded-r-lg cursor-pointer"
+                                                      onClick={
+                                                        handleClearSearch
+                                                      }
+                                                    >
+                                                      <IoClose />
+                                                    </div>
+                                                  </div>
+                                                )}
+
+                                                {fieldInfo.options &&
+                                                  fieldInfo.options.map(
                                                     (option) => (
+                                                      <SelectItem
+                                                        value={option.formdata}
+                                                      >
+                                                        {option.label}
+                                                      </SelectItem>
+                                                    )
+                                                  )}
+                                              </SelectContent>
+                                            </Select>
+                                          ) : fieldInfo.type === 'options' ? (
+                                            <>
+                                              <Button
+                                                onClick={() => {
+                                                  setFormData(
+                                                    (prevFormData) => ({
+                                                      ...prevFormData,
+                                                      [fieldInfo.name]:
+                                                        !prevFormData[
+                                                          fieldInfo.name
+                                                        ],
+                                                    })
+                                                  );
+                                                }}
+                                                type="button"
+                                                className="p-0 h-0"
+                                                variant={'link'}
+                                              >
+                                                {formData[fieldInfo.name]
+                                                  ? 'Cancelar'
+                                                  : 'Programar'}
+                                              </Button>
+                                            </>
+                                          ) : (
+                                            <>
+                                              {fieldInfo.name ===
+                                              'dimensions' ? (
+                                                <div className="flex items-center gap-2 max-w-[400px] w-full">
+                                                  {fieldInfo?.options &&
+                                                    fieldInfo?.options.map(
+                                                      (option) => (
+                                                        <Input
+                                                          key={option.formdata.toLowerCase()}
+                                                          id={option.formdata.toLowerCase()}
+                                                          type={fieldInfo.type}
+                                                          onChange={(event) => {
+                                                            const value =
+                                                              event.target
+                                                                .value;
+                                                            setFormData(
+                                                              (
+                                                                prevFormData
+                                                              ) => ({
+                                                                ...prevFormData,
+                                                                dimensions: {
+                                                                  ...prevFormData.dimensions,
+                                                                  [option.formdata]:
+                                                                    value,
+                                                                },
+                                                              })
+                                                            );
+                                                            validateField(
+                                                              option.formdata,
+                                                              value
+                                                            );
+                                                          }}
+                                                          value={
+                                                            formData.dimensions[
+                                                              option.formdata
+                                                            ] || ''
+                                                          }
+                                                          name={option.formdata.toLowerCase()}
+                                                          placeholder={
+                                                            option.label
+                                                          }
+                                                        />
+                                                      )
+                                                    )}
+                                                </div>
+                                              ) : (
+                                                <>
+                                                  {fieldInfo.type === 'text' ? (
+                                                    <>
                                                       <Input
-                                                        key={option.formdata.toLowerCase()}
-                                                        id={option.formdata.toLowerCase()}
+                                                        id={fieldInfo.name}
                                                         type={fieldInfo.type}
                                                         onChange={(event) => {
                                                           const value =
@@ -1152,38 +1215,27 @@ const CreateForm: React.FC<Props> = () => {
                                                           setFormData(
                                                             (prevFormData) => ({
                                                               ...prevFormData,
-                                                              dimensions: {
-                                                                ...prevFormData.dimensions,
-                                                                [option.formdata]:
-                                                                  value,
-                                                              },
+                                                              [fieldInfo.name]:
+                                                                value,
                                                             })
                                                           );
                                                           validateField(
-                                                            option.formdata,
+                                                            fieldInfo.name,
                                                             value
                                                           );
                                                         }}
                                                         value={
-                                                          formData.dimensions[
-                                                            option.formdata
+                                                          formData[
+                                                            fieldInfo.name
                                                           ] || ''
                                                         }
-                                                        name={option.formdata.toLowerCase()}
-                                                        placeholder={
-                                                          option.label
-                                                        }
+                                                        name={fieldInfo.name}
+                                                        className="max-w-[400px]"
                                                       />
-                                                    )
-                                                  )}
-                                              </div>
-                                            ) : (
-                                              <>
-                                                {fieldInfo.type === 'text' ? (
-                                                  <>
-                                                    <Input
+                                                    </>
+                                                  ) : (
+                                                    <Textarea
                                                       id={fieldInfo.name}
-                                                      type={fieldInfo.type}
                                                       onChange={(event) => {
                                                         const value =
                                                           event.target.value;
@@ -1205,139 +1257,171 @@ const CreateForm: React.FC<Props> = () => {
                                                         ] || ''
                                                       }
                                                       name={fieldInfo.name}
-                                                      className="max-w-[400px]"
+                                                      className="resize-none h-20 w-96"
                                                     />
-                                                  </>
-                                                ) : (
-                                                  <Textarea
-                                                    id={fieldInfo.name}
-                                                    onChange={(event) => {
-                                                      const value =
-                                                        event.target.value;
-                                                      setFormData(
-                                                        (prevFormData) => ({
-                                                          ...prevFormData,
-                                                          [fieldInfo.name]:
-                                                            value,
-                                                        })
-                                                      );
-                                                      validateField(
-                                                        fieldInfo.name,
-                                                        value
-                                                      );
-                                                    }}
-                                                    value={
-                                                      formData[
-                                                        fieldInfo.name
-                                                      ] || ''
-                                                    }
-                                                    name={fieldInfo.name}
-                                                    className="resize-none h-20 w-96"
-                                                  />
-                                                )}
-                                              </>
-                                            )}
-                                          </>
-                                        )}
+                                                  )}
+                                                </>
+                                              )}
+                                            </>
+                                          )}
 
-                                        {errorMessages[fieldInfo.name] && (
-                                          <p className="text-accent text-xs">
-                                            {errorMessages[fieldInfo.name]}
-                                          </p>
-                                        )}
+                                          {errorMessages[fieldInfo.name] && (
+                                            <p className="text-accent text-xs">
+                                              {errorMessages[fieldInfo.name]}
+                                            </p>
+                                          )}
+                                        </div>
                                       </div>
-                                    </div>
-                                  </>
-                                ))}
-                            </>
-                          )}
-                        </TabsContent>
-                      ))}
-                    </div>
-                  </Tabs>
-                </div>
-              ) : data?.title === 'Detalles adicionales' ? (
-                <></>
-              ) : (
-                <>
-                  {data.fields.map((fieldInfo) => (
-                    <div
-                      key={`${fieldInfo.name}`}
-                      className={fieldInfo.colSpan}
-                    >
-                      <div>
-                        <Label
-                          className={`${
-                            errorMessages[fieldInfo.name] && 'text-accent'
-                          } flex items-center gap-1 pb-1`}
-                          htmlFor={fieldInfo.name}
-                        >
-                          {fieldInfo.label}{' '}
-                          {fieldInfo.required && (
-                            <span className="text-accent">*</span>
-                          )}{' '}
-                        </Label>
-
-                        {fieldInfo.type === 'text' ? (
-                          <>
-                            <Input
-                              id={fieldInfo.name}
-                              type={fieldInfo.type}
-                              onChange={(event) => {
-                                const value = event.target.value;
-                                setFormData((prevFormData) => ({
-                                  ...prevFormData,
-                                  [fieldInfo.name]: value,
-                                }));
-                                validateField(fieldInfo.name, value);
-                              }}
-                              value={formData[fieldInfo.name] || ''}
-                              name={fieldInfo.name}
-                            />
-                          </>
-                        ) : (
-                          <div className="min-h-96">
-                            <div className="min-h-96 !h-auto rounded-lg border bg-background shadow">
-                              <PlateEditor />
-                            </div>
-                          </div>
-                        )}
-
-                        {errorMessages[fieldInfo.name] && (
-                          <p className="text-accent text-xs">
-                            {errorMessages[fieldInfo.name]}
-                          </p>
-                        )}
+                                    </>
+                                  ))}
+                              </>
+                            )}
+                          </TabsContent>
+                        ))}
                       </div>
-                    </div>
-                  ))}
-                </>
-              )}
-            </div>
-          ))}
+                    </Tabs>
+                  </div>
+                ) : data?.title === 'Detalles adicionales' ? (
+                  <></>
+                ) : (
+                  <>
+                    {data.fields.map((fieldInfo) => (
+                      <div
+                        key={`${fieldInfo.name}`}
+                        className={fieldInfo.colSpan}
+                      >
+                        <div>
+                          <Label
+                            className={`${
+                              errorMessages[fieldInfo.name] && 'text-accent'
+                            } flex items-center gap-1 pb-1`}
+                            htmlFor={fieldInfo.name}
+                          >
+                            {fieldInfo.label}{' '}
+                            {fieldInfo.required && (
+                              <span className="text-accent">*</span>
+                            )}{' '}
+                          </Label>
 
-          <div className="grid grid-cols-2 min-[1400px]:grid-cols-3 gap-3 rounded-md mt-5 bg-white p-3 shadow">
-            <h4 className={`col-span-2 min-[1400px]:col-span-3 border-b`}>
-              Imagenes
-            </h4>
+                          {fieldInfo.type === 'text' ? (
+                            <>
+                              <Input
+                                id={fieldInfo.name}
+                                type={fieldInfo.type}
+                                onChange={(event) => {
+                                  const value = event.target.value;
+                                  setFormData((prevFormData) => ({
+                                    ...prevFormData,
+                                    [fieldInfo.name]: value,
+                                  }));
+                                  validateField(fieldInfo.name, value);
+                                }}
+                                value={formData[fieldInfo.name] || ''}
+                                name={fieldInfo.name}
+                              />
+                            </>
+                          ) : (
+                            <div className="min-h-96">
+                              <div className="min-h-96 !h-auto rounded-lg border bg-background shadow">
+                                <PlateEditor />
+                              </div>
+                            </div>
+                          )}
 
-            <div className="col-span-2 min-[1400px]:col-span-3 grid min-[1740px]:grid-cols-3 gap-3">
-              <ImageUpload files={files} setFiles={setFiles} />
+                          {errorMessages[fieldInfo.name] && (
+                            <p className="text-accent text-xs">
+                              {errorMessages[fieldInfo.name]}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                )}
+              </div>
+            ))}
+
+            <div className="grid grid-cols-2 min-[1400px]:grid-cols-3 gap-3 rounded-md mt-5 bg-white p-3 shadow">
+              <h4 className={`col-span-2 min-[1400px]:col-span-3 border-b`}>
+                Imagenes
+              </h4>
+
+              <div className="col-span-2 min-[1400px]:col-span-3 grid min-[1740px]:grid-cols-3 gap-3">
+                <ImageUpload files={files} setFiles={setFiles} />
+              </div>
             </div>
           </div>
 
-          <div className="mt-3">
-            <Button
-              disabled={loadingForm}
-              className="w-full text-white"
-              type="submit"
-            >
-              {loadingForm ? (
-                <div className="w-6 h-6 border-4 border-t-transparent border-white rounded-full animate-spin"></div>
-              ) : (
-                'Confirmar'
-              )}
-            </Button>
+          <div className="flex flex-col gap-4 mt-5 w-96">
+            <div className="bg-white rounded-md shadow">
+              <div className="flex flex-col gap-2 p-3">
+                <h3>Publicar</h3>
+
+                <div className="flex flex-col gap-2 ">
+                  <div className="flex items-center gap-2 text-[13px]">
+                    <BsPinFill /> <span>Estado: Borrador</span>{' '}
+                    <Button
+                      type="button"
+                      className="p-0 h-0 text-[13px]"
+                      variant={'link'}
+                    >
+                      editar
+                    </Button>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-[13px]">
+                    <BsPinFill /> <span>Visibilidad: Pública</span>{' '}
+                    <Button
+                      type="button"
+                      className="p-0 h-0 text-[13px]"
+                      variant={'link'}
+                    >
+                      editar
+                    </Button>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-[13px]">
+                    <BsPinFill /> <span>Publicar inmediatamente</span>{' '}
+                    <Button
+                      type="button"
+                      className="p-0 h-0 text-[13px]"
+                      variant={'link'}
+                    >
+                      editar
+                    </Button>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-[13px]">
+                    <span>
+                      Visibilidad catálogo: En la tienda y en los resultados de
+                      búsqueda
+                      <Button
+                        type="button"
+                        className=" ml-1 p-0 h-0 text-[13px]"
+                        variant={'link'}
+                      >
+                        editar
+                      </Button>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-3 border-t">
+                <div className="w-full pt-1 flex justify-between">
+                  <Button type="button" variant={'outline'}>
+                    Guardar borrador
+                  </Button>
+                  <Button>Publicar</Button>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-md shadow">
+              <div className="flex flex-col gap-2 p-3">
+                <h3>Categorias</h3>
+              </div>
+            </div>
           </div>
         </>
       </form>
