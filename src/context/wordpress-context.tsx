@@ -17,6 +17,7 @@ interface WordpressContextProps {
   fetchPosts: (sett: any) => any; // Post[]
   fetchCategories: () => any; // Category[]
   fetchTags: () => any; // Tag[]
+  addCategory: (sett: any) => any; // Tag[]
 }
 
 const WordpressContext = createContext<WordpressContextProps | undefined>(undefined);
@@ -29,22 +30,29 @@ const WordpressProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [categories, setCategories] = useState(null);
   const [tags, setTags] = useState(null);
 
-  const fetchPosts = async ({ status = "publish" }: { status?: string }) => {
+  const fetchPosts = async ({ status = 'publish' }: { status?: string }) => {
     const response = await axios.get(`${ServerUrl}/wordpress/posts?userId=${completeUser._id}&status=${status}`);
-    console.log("posts", response.data)
-    return response.data
+    console.log('posts', response.data);
+    return response.data;
   };
 
   const fetchCategories = async () => {
     const response = await axios.get(`${ServerUrl}/wordpress/categories?userId=${completeUser._id}`);
-    console.log("categories", response.data)
-    return response.data
+    console.log('categories', response.data);
+    return response.data;
   };
 
   const fetchTags = async () => {
     const response = await axios.get(`${ServerUrl}/wordpress/tags?userId=${completeUser._id}`);
-    console.log("tags", response.data)
-    return response.data
+    console.log('tags', response.data);
+    return response.data;
+  };
+
+  const addCategory = async (category: any) => {
+    const response = await axios.post(`${ServerUrl}/wordpress/categories`,
+      { category, userId: completeUser._id });
+    console.log('category', response.data);
+    return response.data;
   };
 
   const [post, setPost] = useState(null);
@@ -65,7 +73,8 @@ const WordpressProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         tags,
         fetchPosts,
         fetchCategories,
-        fetchTags
+        fetchTags,
+        addCategory
       }}
     >
       {children}
