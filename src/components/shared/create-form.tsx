@@ -22,10 +22,10 @@ import {
 /* import Pagination from "../shared/pagination"; */
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+import PlateEditor from '../plate-editor';
 import { Checkbox } from '../ui/checkbox';
 import { Textarea } from '../ui/textarea';
 import { ImageUpload } from './image-upload';
-import PlateEditor from '../plate-editor';
 
 interface Props {}
 
@@ -421,26 +421,7 @@ const CreateForm: React.FC<Props> = () => {
           ],
         },
       ],
-    },
-    {
-      title: 'Detalles adicionales',
-      fields: [
-        {
-          name: 'name',
-          label: 'Nombre del producto',
-          colSpan: 'col-span-2 min-[720px]:col-span-1 min-[1400px]:col-span-2',
-          type: 'text',
-          min: 3,
-        },
-        {
-          name: 'slug',
-          label: 'Slug',
-          colSpan: 'col-span-2 min-[720px]:col-span-1',
-          type: 'text',
-          min: 3,
-        },
-      ],
-    },
+    } ,
   ];
 
   if (formData['inventory_management'] !== true) {
