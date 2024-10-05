@@ -7,7 +7,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-const directionServer = false;
+const directionServer = true;
 
 const directionHome = true;
 

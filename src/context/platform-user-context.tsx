@@ -79,14 +79,35 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 
   const fetchSession = async () => {
     setLoading(true);
-    const url = `${ServerUrl}/platform-users/email/maxi@moveup.digital`;
-    console.log(url);
+    const url = `${ServerUrl}/platform-users/login/`;
+
     try {
-      const response = await axios.get(url);
-      console.log(response.data);
-      setCompleteUser(response.data);
+      const response = await axios.post(url, {
+        email: 'maxi@moveup.digital',
+      });
+
+      if (response.status === 201) {
+        console.log('Session fetched successfully:', response.data);
+        setCompleteUser({
+          ...response.data.user,
+          token: response.data.token,
+        });
+        console.log('aca');
+        console.log({
+          ...response.data.user._doc,
+          token: response.data.access_token,
+        });
+      } else {
+        console.error(`Unexpected response status: ${response.status}`);
+      }
     } catch (error) {
-      console.log('can\'t fetch session', error);
+      if (error.response) {
+        console.error('Error en la respuesta del servidor:', error.response.data);
+      } else if (error.request) {
+        console.error('Error en la solicitud, no hubo respuesta:', error.request);
+      } else {
+        console.error('Error al hacer la solicitud:', error.message);
+      }
     } finally {
       setLoading(false);
     }

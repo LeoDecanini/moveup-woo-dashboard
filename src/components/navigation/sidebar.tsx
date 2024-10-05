@@ -26,6 +26,7 @@ import { buttonVariants } from '../ui/button';
 import { DropdownOptions } from './dropdown-options';
 import { LinksOptions } from './links-options';
 import NavBar from './nav-bar';
+import { Badge } from '@/components/ui/badge';
 
 const menuOptions = [{ text: 'Productos', link: '/create-product' }];
 
@@ -79,14 +80,16 @@ const Sidebar = ({
                   alt="Logo"
                 />
                 {!isLocked && (
+                  <>
                   <img
                     src="/NOMBRE_MAIN.png"
                     className="h-[25px] pt-[2px]"
                     alt="Logo"
                   />
+                  <Badge className={"!ml-1"}>v0.1.0</Badge>
+                  </>
                 )}
               </div>
-              <ThemeToggle />
             </div>
           </Link>
 
@@ -97,7 +100,9 @@ const Sidebar = ({
           </div>
 
           <div className="flex flex-col gap-2">
+
             <div className="p-3">
+            <ThemeToggle />
               <DropdownMenu>
                 <DropdownMenuTrigger
                   className={`${buttonVariants({

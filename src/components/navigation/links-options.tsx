@@ -84,7 +84,7 @@ const links: LinkGroup[] = [
     ],
   },
   {
-    group: "Administracion",
+    group: "Administracion2",
     items: [
       {
         href: "/blog",

@@ -31,9 +31,26 @@ const WordpressProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [tags, setTags] = useState(null);
 
   const fetchPosts = async ({ status = 'publish' }: { status?: string }) => {
-    const response = await axios.get(`${ServerUrl}/wordpress/posts?userId=${completeUser._id}&status=${status}`);
-    console.log('posts', response.data);
-    return response.data;
+    try {
+      if (!completeUser || !completeUser.token) {
+        throw new Error('Usuario no autenticado o token no disponible');
+      }
+
+      const response = await axios.get(
+        `${ServerUrl}/wordpress/posts?userId=${completeUser._id}&status=${status}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${completeUser.token}`,
+          },
+        },
+      );
+
+      console.log('posts', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+      throw error;
+    }
   };
 
   const fetchCategories = async () => {
@@ -48,12 +65,22 @@ const WordpressProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     return response.data;
   };
 
-  const addCategory = async (category: any) => {
-    const response = await axios.post(`${ServerUrl}/wordpress/categories`,
-      { category, userId: completeUser._id });
+  const addCategory = async (data: any) => {
+    console.log('calling');
+    const response = await axios.post(`${ServerUrl}/wordpress/categories?userId=${completeUser._id}`,
+      data);
     console.log('category', response.data);
     return response.data;
   };
+
+  const addTagsMultiple = async (data) => {
+    console.log({ addTagsMultiple: data });
+    const response = await axios.post(`${ServerUrl}/wordpress/tags/multiple?userId=${completeUser._id}`,
+      data);
+    console.log('category', response.data);
+    return response.data;
+  };
+
 
   const [post, setPost] = useState(null);
   const [category, setCategory] = useState(null);
@@ -74,7 +101,7 @@ const WordpressProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         fetchPosts,
         fetchCategories,
         fetchTags,
-        addCategory
+        addCategory,
       }}
     >
       {children}

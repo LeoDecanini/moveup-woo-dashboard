@@ -74,311 +74,340 @@ function getQueryParam(param: string): string | null {
 }
 
 const CreateForm: React.FC<Props> = () => {
-  const [editadData, setEditadData] = useState<any | null>(null);
-  const [isEditedPropety, setIsEditedPropety] = useState<boolean>(false);
+    const [editadData, setEditadData] = useState<any | null>(null);
+    const [isEditedPropety, setIsEditedPropety] = useState<boolean>(false);
 
-  const [loadingForm, setLoadingForm] = useState<boolean>(false);
+    const [loadingForm, setLoadingForm] = useState<boolean>(false);
 
-  const [productType, setProductType] = useState('simple');
-  const [existingAttribute, setExistingAttribute] = useState('');
-  const [attributes, setAttributes] = useState<any>([]);
-  const [variations, setVariations] = useState<any>(null);
-  const [files, setFiles] = useState<File[] | null>([]);
+    const [productType, setProductType] = useState('simple');
+    const [existingAttribute, setExistingAttribute] = useState('');
+    const [attributes, setAttributes] = useState<any>([]);
+    const [variations, setVariations] = useState<any>(null);
+    const [files, setFiles] = useState<File[] | null>([]);
 
-  const [filters, setFilters] = useState({
-    products: null,
-  });
-
-  const [categories, setCategories] = useState<any[]>([]);
-  const [tags, setTags] = useState<any[]>([]);
-  const [parentCategory, setParentCategory] = useState<number | string>('none');
-  const [showParentCategory, setShowParentCategory] = useState<any>('none');
-
-  const { fetchCategories, fetchTags } = useWordpress();
-  const [newCategory, setNewCategory] = useState<boolean>(false);
-
-  function findCategoryById(id, categories) {
-    console.log({ id, categories });
-    return categories.find(category => category.id == id);
-  }
-
-  useEffect(() => {
-    fetchCategories().then((data) => {
-      setCategories(data);
+    const [filters, setFilters] = useState({
+      products: null,
     });
-    fetchTags().then((data) => {
-      setTags(data);
-    });
-  }, []);
 
-  const tabs = [
-    {
-      value: 'general',
-      label: 'General',
-      condition: (data: any) =>
-        data.type === 'simple' || data.type === 'external',
-    },
-    { value: 'inventory', label: 'Inventario', condition: () => true },
-    {
-      value: 'shipping',
-      label: 'Envío',
-      condition: (data: any) =>
-        data.type === 'simple' || data.type === 'variable',
-    },
-    {
-      value: 'related-products',
-      label: 'Productos relacionados',
-      condition: () => true,
-    },
-    { value: 'attributes', label: 'Atributos', condition: () => true },
-    {
-      value: 'variations',
-      label: 'Variaciones',
-      condition: (data: any) => data.type === 'variable',
-    },
-    { value: 'advanced', label: 'Avanzado', condition: () => true },
-  ];
+    const [categories, setCategories] = useState<any[]>([]);
+    const [tags, setTags] = useState<any[]>([]);
+    const [parentCategory, setParentCategory] = useState<number | string>('none');
+    const [showParentCategory, setShowParentCategory] = useState<any>('none');
 
-  /* useEffect(() => {
-    const paramValue = getQueryParam("project");
-    if (paramValue) {
-      axios
-        .get(`${ServerUrl}/projects/${paramValue}`, {
-          headers: {
-            Authorization: `Bearer ${tokenFromCookie}`,
-          },
-        })
-        .then((response) => {
-          if (response.status === 200) {
-            setEditadData(response.data);
-            .log(response.data);
-          }
-        })
-        .catch((error) => {
-          toast.error("Error al cargar el proyecto");
-          navigate("/portfolio/projects");
-          console.log(error);
-        });
-    } else {
-      if (currentPath !== "/create-project") {
-        toast.error("No se reconocio ningun proyecto con ese nombre.");
-        navigate("/create-project");
-      }
+    const { fetchCategories, fetchTags, addCategory } = useWordpress();
+    const [newCategory, setNewCategory] = useState<boolean>(false);
+    const [newCategoryName, setNewCategoryName] = useState<string>('');
+    const [newTagsName, setNewTagsName] = useState<any[]>([]);
+    const [selectedCategories, setSelectedCategories] = useState<any[]>([]);
+    const [selectedTags, setSelectedTags] = useState<any[]>([]);
+
+    function findCategoryById(id, categories) {
+      console.log({ id, categories });
+      return categories.find(category => category.id == id);
     }
-  }, []); */
 
-  const [formData, setFormData] = useState<Record<string, any>>({
-    title: '',
-    content: '',
-  });
+    useEffect(() => {
+      fetchCategories().then((data) => {
+        setCategories(data);
+      });
+      fetchTags().then((data) => {
+        setTags(data);
+      });
+    }, []);
 
-  useEffect(() => {
-    console.log(formData);
-  }, [formData]);
+    const tabs = [
+      {
+        value: 'general',
+        label: 'General',
+        condition: (data: any) =>
+          data.type === 'simple' || data.type === 'external',
+      },
+      { value: 'inventory', label: 'Inventario', condition: () => true },
+      {
+        value: 'shipping',
+        label: 'Envío',
+        condition: (data: any) =>
+          data.type === 'simple' || data.type === 'variable',
+      },
+      {
+        value: 'related-products',
+        label: 'Productos relacionados',
+        condition: () => true,
+      },
+      { value: 'attributes', label: 'Atributos', condition: () => true },
+      {
+        value: 'variations',
+        label: 'Variaciones',
+        condition: (data: any) => data.type === 'variable',
+      },
+      { value: 'advanced', label: 'Avanzado', condition: () => true },
+    ];
 
-  useEffect(() => {
-    if (editadData) {
-      setIsEditedPropety(true);
-      setFormData({});
-    } else {
-      setIsEditedPropety(false);
-    }
-  }, [editadData]);
-
-  const [errorMessages, setErrorMessages] = useState<Record<string, string>>(
-    {},
-  );
-
-  let fieldsDataTypeSimple: Section[] = [
-    {
-      title: 'Datos principales',
-      fields: [
-        {
-          name: 'title',
-          label: 'Título de la entrada',
-          colSpan: 'col-span-2 min-[1400px]:col-span-3',
-          type: 'text',
-          min: 3,
-        },
-        {
-          name: 'content',
-          label: 'Descripcion de la entrada',
-          colSpan: 'col-span-2 min-[1400px]:col-span-3',
-          type: 'textarea',
-          max: 500,
-        },
-      ],
-    },
-  ];
-
-  if (formData['inventory_management'] !== true) {
-    fieldsDataTypeSimple = fieldsDataTypeSimple.map((section: any) => {
-      if (section.title === 'Datos del producto') {
-        return {
-          ...section,
-          tabs: section.tabs.map((tab: any) => ({
-            ...tab,
-            fields: tab.fields.filter(
-              (field: any) =>
-                field.name !== 'stock_quantity' &&
-                field.name !== 'reserves' &&
-                field.name !== 'low_existens',
-            ),
-          })),
-        };
-      }
-      return section;
-    });
-  }
-
-  if (formData['program'] !== true) {
-    fieldsDataTypeSimple = fieldsDataTypeSimple.map((section: any) => {
-      if (section.title === 'Datos del producto') {
-        return {
-          ...section,
-          tabs: section.tabs.map((tab: any) => ({
-            ...tab,
-            fields: tab.fields.filter(
-              (field: any) =>
-                field.name !== 'date_on_sale_from' &&
-                field.name !== 'date_on_sale_to',
-            ),
-          })),
-        };
-      }
-      return section;
-    });
-  }
-
-  let noValid = false;
-
-  const validateField = (name: string, value: string) => {
-    const newErrorMessages: Record<string, string> = {};
-
-    let field: Field | undefined;
-
-    fieldsDataTypeSimple.some((section) => {
-      if ('fields' in section) {
-        field = section.fields.find((f) => f.name === name);
-      } else if ('tabs' in section) {
-        section.tabs.some((tab) => {
-          field = tab.fields.find((f) => f.name === name);
-          return !!field;
-        });
-      }
-      return !!field;
-    });
-
-    if (field) {
-      if (field.required && !value) {
-        newErrorMessages[name] = 'Por favor, complete el campo.';
-      } else if (field.min && value.length < field.min) {
-        newErrorMessages[name] =
-          `Por favor, ingrese al menos ${field.min} caracteres.`;
-      } else if (field.max && value.length > field.max) {
-        newErrorMessages[name] =
-          `Por favor, ingrese como máximo ${field.max} caracteres.`;
-      } else if (field.type === 'number' && value) {
-        if (!value) {
-          newErrorMessages[name] = 'Por favor, ingrese un número.';
-        } else if (isNaN(Number(value))) {
-          newErrorMessages[name] = 'Debe ser un número válido.';
-        } else if (Number(value) < 0) {
-          newErrorMessages[name] = 'Debe ser un número no negativo.';
+    /* useEffect(() => {
+      const paramValue = getQueryParam("project");
+      if (paramValue) {
+        axios
+          .get(`${ServerUrl}/projects/${paramValue}`, {
+            headers: {
+              Authorization: `Bearer ${tokenFromCookie}`,
+            },
+          })
+          .then((response) => {
+            if (response.status === 200) {
+              setEditadData(response.data);
+              .log(response.data);
+            }
+          })
+          .catch((error) => {
+            toast.error("Error al cargar el proyecto");
+            navigate("/portfolio/projects");
+            console.log(error);
+          });
+      } else {
+        if (currentPath !== "/create-project") {
+          toast.error("No se reconocio ningun proyecto con ese nombre.");
+          navigate("/create-project");
         }
       }
+    }, []); */
+
+    const [formData, setFormData] = useState<Record<string, any>>({
+      title: '',
+      content: '',
+    });
+
+    useEffect(() => {
+      console.log(formData);
+    }, [formData]);
+
+    useEffect(() => {
+      if (editadData) {
+        setIsEditedPropety(true);
+        setFormData({});
+      } else {
+        setIsEditedPropety(false);
+      }
+    }, [editadData]);
+
+    const [errorMessages, setErrorMessages] = useState<Record<string, string>>(
+      {},
+    );
+
+    let fieldsDataTypeSimple: Section[] = [
+      {
+        title: 'Datos principales',
+        fields: [
+          {
+            name: 'title',
+            label: 'Título de la entrada',
+            colSpan: 'col-span-2 min-[1400px]:col-span-3',
+            type: 'text',
+            min: 3,
+          },
+          {
+            name: 'content',
+            label: 'Descripcion de la entrada',
+            colSpan: 'col-span-2 min-[1400px]:col-span-3',
+            type: 'textarea',
+            max: 500,
+          },
+        ],
+      },
+    ];
+
+    if (formData['inventory_management'] !== true) {
+      fieldsDataTypeSimple = fieldsDataTypeSimple.map((section: any) => {
+        if (section.title === 'Datos del producto') {
+          return {
+            ...section,
+            tabs: section.tabs.map((tab: any) => ({
+              ...tab,
+              fields: tab.fields.filter(
+                (field: any) =>
+                  field.name !== 'stock_quantity' &&
+                  field.name !== 'reserves' &&
+                  field.name !== 'low_existens',
+              ),
+            })),
+          };
+        }
+        return section;
+      });
     }
 
-    setErrorMessages((prevErrorMessages) => {
-      const updatedErrorMessages = {
-        ...prevErrorMessages,
-        ...newErrorMessages,
+    if (formData['program'] !== true) {
+      fieldsDataTypeSimple = fieldsDataTypeSimple.map((section: any) => {
+        if (section.title === 'Datos del producto') {
+          return {
+            ...section,
+            tabs: section.tabs.map((tab: any) => ({
+              ...tab,
+              fields: tab.fields.filter(
+                (field: any) =>
+                  field.name !== 'date_on_sale_from' &&
+                  field.name !== 'date_on_sale_to',
+              ),
+            })),
+          };
+        }
+        return section;
+      });
+    }
+
+    let noValid = false;
+
+    const validateField = (name: string, value: string) => {
+      const newErrorMessages: Record<string, string> = {};
+
+      let field: Field | undefined;
+
+      fieldsDataTypeSimple.some((section) => {
+        if ('fields' in section) {
+          field = section.fields.find((f) => f.name === name);
+        } else if ('tabs' in section) {
+          section.tabs.some((tab) => {
+            field = tab.fields.find((f) => f.name === name);
+            return !!field;
+          });
+        }
+        return !!field;
+      });
+
+      if (field) {
+        if (field.required && !value) {
+          newErrorMessages[name] = 'Por favor, complete el campo.';
+        } else if (field.min && value.length < field.min) {
+          newErrorMessages[name] =
+            `Por favor, ingrese al menos ${field.min} caracteres.`;
+        } else if (field.max && value.length > field.max) {
+          newErrorMessages[name] =
+            `Por favor, ingrese como máximo ${field.max} caracteres.`;
+        } else if (field.type === 'number' && value) {
+          if (!value) {
+            newErrorMessages[name] = 'Por favor, ingrese un número.';
+          } else if (isNaN(Number(value))) {
+            newErrorMessages[name] = 'Debe ser un número válido.';
+          } else if (Number(value) < 0) {
+            newErrorMessages[name] = 'Debe ser un número no negativo.';
+          }
+        }
+      }
+
+      setErrorMessages((prevErrorMessages) => {
+        const updatedErrorMessages = {
+          ...prevErrorMessages,
+          ...newErrorMessages,
+        };
+
+        if (newErrorMessages[name] === undefined) {
+          delete updatedErrorMessages[name];
+        }
+
+        return updatedErrorMessages;
+      });
+
+      if (Object.keys(newErrorMessages).length > 0) {
+        noValid = true;
+      }
+    };
+
+    const validateForm = (): boolean => {
+      noValid = false;
+      Object.keys(formData).forEach((key) => {
+        validateField(key, formData[key]);
+      });
+
+      console.log(noValid);
+
+      return !noValid;
+    };
+
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
+      e.preventDefault();
+      setLoadingForm(true);
+
+      const validateData = validateForm();
+
+      if (!validateData) return;
+
+      formData.status = 'publish';
+
+      console.log({ formData });
+      try {
+        const response = await axios.post(`${ServerUrl}/wordpress/posts`, {
+          userId: '66fcceab3f69e67d4843014a',
+          post: formData,
+        }, {});
+        console.log(response.data);
+      } catch (error) {
+        console.log(error);
+      } finally {
+      }
+      setLoadingForm(false);
+
+    };
+
+    const handleSearchChange = (e: any) => {
+      const value = e.target.value;
+      setFilters((prevFilters) => ({
+        ...prevFilters,
+        products: value !== '' ? value : null,
+      }));
+    };
+
+    const handleClearSearch = () => {
+      setFilters((prevFilters) => ({
+        ...prevFilters,
+        products: null,
+      }));
+    };
+
+    useEffect(() => {
+      attributes.forEach((attr: any) => {
+        attr.options.forEach((option: any) => {
+          if (attr.save) {
+            console.log('first');
+          }
+        });
+      });
+    }, [attributes]);
+
+    console.log('parentCategory', parentCategory);
+
+    const handleAddCategory = async () => {
+      const parent = parentCategory === 'none' ? 0 : parentCategory;
+      const data = {
+        name: newCategoryName,
+        parent,
       };
 
-      if (newErrorMessages[name] === undefined) {
-        delete updatedErrorMessages[name];
-      }
+      addCategory(data).then(async (response) => {
+        console.log(response);
+        await fetchCategories().then((data) => {
+          setCategories(data);
+        });
 
-      return updatedErrorMessages;
-    });
+        setSelectedCategories((prevSelectedCategories) => [
+          ...prevSelectedCategories,
+          response,
+        ]);
 
-    if (Object.keys(newErrorMessages).length > 0) {
-      noValid = true;
-    }
-  };
-
-  const validateForm = (): boolean => {
-    noValid = false;
-    Object.keys(formData).forEach((key) => {
-      validateField(key, formData[key]);
-    });
-
-    console.log(noValid);
-
-    return !noValid;
-  };
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
-    e.preventDefault();
-    setLoadingForm(true);
-
-    const validateData = validateForm();
-
-    if (!validateData) return;
-
-    formData.status = 'publish';
-
-    console.log({ formData });
-    try {
-      const response = await axios.post(`${ServerUrl}/wordpress/posts`, {
-        userId: '66fcceab3f69e67d4843014a',
-        post: formData,
-      }, {});
-      console.log(response.data);
-    } catch (error) {
-      console.log(error);
-    } finally {
-    }
-    setLoadingForm(false);
-
-  };
-
-  const handleSearchChange = (e: any) => {
-    const value = e.target.value;
-    setFilters((prevFilters) => ({
-      ...prevFilters,
-      products: value !== '' ? value : null,
-    }));
-  };
-
-  const handleClearSearch = () => {
-    setFilters((prevFilters) => ({
-      ...prevFilters,
-      products: null,
-    }));
-  };
-
-  useEffect(() => {
-    attributes.forEach((attr: any) => {
-      attr.options.forEach((option: any) => {
-        if (attr.save) {
-          console.log('first');
-        }
+        setNewCategory(false);
+        setNewCategoryName('');
       });
-    });
-  }, [attributes]);
+    };
 
-  console.log('parentCategory', parentCategory);
+    console.log({ selectedCategories });
 
-  return (
-    <>
-      <div className='bg-white rounded-md shadow flex flex-col'>
-        <div
-          className='flex flex-col gap-3 min-[550px]:gap-0 min-[550px]:flex-row justify-between items-center w-full border-b p-3'>
-          <h1 className='text-2xl sm:text-4xl text-secondary font-semibold'>
-            Crear entrada
-          </h1>
-          {/* <Select
+    return (
+      <>
+        <div className='bg-white rounded-md shadow flex flex-col'>
+          <div
+            className='flex flex-col gap-3 min-[550px]:gap-0 min-[550px]:flex-row justify-between items-center w-full border-b p-3'>
+            <h1 className='text-2xl sm:text-4xl text-secondary font-semibold'>
+              Crear entrada
+            </h1>
+            {/* <Select
             onValueChange={(value) => {
               setProductType(value);
             }}
@@ -396,56 +425,38 @@ const CreateForm: React.FC<Props> = () => {
               <SelectItem value={'variable'}>Producto variable</SelectItem>
             </SelectContent>
           </Select> */}
+          </div>
         </div>
-      </div>
 
-      <form className='flex gap-4' onSubmit={handleSubmit}>
-        <div className='w-full'>
-          <>
-            {fieldsDataTypeSimple.map((data, index) => (
-              <div className='grid grid-cols-2 min-[1400px]:grid-cols-3 gap-3 rounded-md mt-5 bg-white p-3 shadow'>
-                <h4 className={`col-span-2 min-[1400px]:col-span-3 border-b`}>
-                  {data.title}
-                </h4>
+        <form className='flex gap-4' onSubmit={handleSubmit}>
+          <div className='w-full'>
+            <>
+              {fieldsDataTypeSimple.map((data, index) => (
+                <div className='grid grid-cols-2 min-[1400px]:grid-cols-3 gap-3 rounded-md mt-5 bg-white p-3 shadow'>
+                  <h4 className={`col-span-2 min-[1400px]:col-span-3 border-b`}>
+                    {data.title}
+                  </h4>
 
-                {/* @ts-ignore */}
-                {data?.fields.map((fieldInfo) => (
-                  <div key={`${fieldInfo.name}`} className={fieldInfo.colSpan}>
-                    <div>
-                      <Label
-                        className={`${errorMessages[fieldInfo.name] && 'text-accent'
-                        } flex items-center gap-1 pb-1`}
-                        htmlFor={fieldInfo.name}
-                      >
-                        {fieldInfo.label}{' '}
-                        {fieldInfo.required && (
-                          <span className='text-accent'>*</span>
-                        )}{' '}
-                      </Label>
+                  {/* @ts-ignore */}
+                  {data?.fields.map((fieldInfo) => (
+                    <div key={`${fieldInfo.name}`} className={fieldInfo.colSpan}>
+                      <div>
+                        <Label
+                          className={`${errorMessages[fieldInfo.name] && 'text-accent'
+                          } flex items-center gap-1 pb-1`}
+                          htmlFor={fieldInfo.name}
+                        >
+                          {fieldInfo.label}{' '}
+                          {fieldInfo.required && (
+                            <span className='text-accent'>*</span>
+                          )}{' '}
+                        </Label>
 
-                      {fieldInfo.type === 'text' ? (
-                        <>
-                          <Input
-                            id={fieldInfo.name}
-                            type={fieldInfo.type}
-                            onChange={(event) => {
-                              const value = event.target.value;
-                              setFormData((prevFormData) => ({
-                                ...prevFormData,
-                                [fieldInfo.name]: value,
-                              }));
-                              validateField(fieldInfo.name, value);
-                            }}
-                            value={formData[fieldInfo.name] || ''}
-                            name={fieldInfo.name}
-                          />
-                        </>
-                      ) : (
-                        <div className='min-h-96'>
-                          <div /* className="min-h-96 rounded-lg border bg-background shadow" */>
-                            {/* <PlateEditor /> */}
-                            <Textarea
+                        {fieldInfo.type === 'text' ? (
+                          <>
+                            <Input
                               id={fieldInfo.name}
+                              type={fieldInfo.type}
                               onChange={(event) => {
                                 const value = event.target.value;
                                 setFormData((prevFormData) => ({
@@ -456,66 +467,84 @@ const CreateForm: React.FC<Props> = () => {
                               }}
                               value={formData[fieldInfo.name] || ''}
                               name={fieldInfo.name}
-                              className='min-h-96'
-
                             />
+                          </>
+                        ) : (
+                          <div className='min-h-96'>
+                            <div /* className="min-h-96 rounded-lg border bg-background shadow" */>
+                              {/* <PlateEditor /> */}
+                              <Textarea
+                                id={fieldInfo.name}
+                                onChange={(event) => {
+                                  const value = event.target.value;
+                                  setFormData((prevFormData) => ({
+                                    ...prevFormData,
+                                    [fieldInfo.name]: value,
+                                  }));
+                                  validateField(fieldInfo.name, value);
+                                }}
+                                value={formData[fieldInfo.name] || ''}
+                                name={fieldInfo.name}
+                                className='min-h-96'
+
+                              />
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
 
-                      {errorMessages[fieldInfo.name] && (
-                        <p className='text-accent text-[13px]'>
-                          {errorMessages[fieldInfo.name]}
-                        </p>
-                      )}
+                        {errorMessages[fieldInfo.name] && (
+                          <p className='text-accent text-[13px]'>
+                            {errorMessages[fieldInfo.name]}
+                          </p>
+                        )}
+                      </div>
                     </div>
+                  ))}
+                </div>
+              ))}
+            </>
+          </div>
+
+          <div className='flex flex-col gap-4 mt-5 w-96'>
+            <div className='bg-white rounded-md shadow'>
+              <div className='flex flex-col gap-2 p-3'>
+                <h3>Publicar</h3>
+
+                <div className='flex flex-col gap-2 '>
+                  <div className='flex items-center gap-2 text-[13px]'>
+                    <BsPinFill /> <span>Estado: Borrador</span>{' '}
+                    <Button
+                      type='button'
+                      className='p-0 h-0 text-[13px]'
+                      variant={'link'}
+                    >
+                      editar
+                    </Button>
                   </div>
-                ))}
-              </div>
-            ))}
-          </>
-        </div>
 
-        <div className='flex flex-col gap-4 mt-5 w-96'>
-          <div className='bg-white rounded-md shadow'>
-            <div className='flex flex-col gap-2 p-3'>
-              <h3>Publicar</h3>
+                  <div className='flex items-center gap-2 text-[13px]'>
+                    <BsPinFill /> <span>Visibilidad: Pública</span>{' '}
+                    <Button
+                      type='button'
+                      className='p-0 h-0 text-[13px]'
+                      variant={'link'}
+                    >
+                      editar
+                    </Button>
+                  </div>
 
-              <div className='flex flex-col gap-2 '>
-                <div className='flex items-center gap-2 text-[13px]'>
-                  <BsPinFill /> <span>Estado: Borrador</span>{' '}
-                  <Button
-                    type='button'
-                    className='p-0 h-0 text-[13px]'
-                    variant={'link'}
-                  >
-                    editar
-                  </Button>
-                </div>
+                  <div className='flex items-center gap-2 text-[13px]'>
+                    <BsPinFill /> <span>Publicar inmediatamente</span>{' '}
+                    <Button
+                      type='button'
+                      className='p-0 h-0 text-[13px]'
+                      variant={'link'}
+                    >
+                      editar
+                    </Button>
+                  </div>
 
-                <div className='flex items-center gap-2 text-[13px]'>
-                  <BsPinFill /> <span>Visibilidad: Pública</span>{' '}
-                  <Button
-                    type='button'
-                    className='p-0 h-0 text-[13px]'
-                    variant={'link'}
-                  >
-                    editar
-                  </Button>
-                </div>
-
-                <div className='flex items-center gap-2 text-[13px]'>
-                  <BsPinFill /> <span>Publicar inmediatamente</span>{' '}
-                  <Button
-                    type='button'
-                    className='p-0 h-0 text-[13px]'
-                    variant={'link'}
-                  >
-                    editar
-                  </Button>
-                </div>
-
-                <div className='flex items-center gap-2 text-[13px]'>
+                  <div className='flex items-center gap-2 text-[13px]'>
                   <span>
                     Visibilidad catálogo: En la tienda y en los resultados de
                     búsqueda
@@ -527,97 +556,190 @@ const CreateForm: React.FC<Props> = () => {
                       editar
                     </Button>
                   </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className='p-3 border-t'>
+                <div className='w-full pt-1 flex justify-between'>
+                  <Button type='button' variant={'outline'}>
+                    Guardar borrador
+                  </Button>
+                  <Button>Publicar</Button>
                 </div>
               </div>
             </div>
 
-            <div className='p-3 border-t'>
-              <div className='w-full pt-1 flex justify-between'>
-                <Button type='button' variant={'outline'}>
-                  Guardar borrador
-                </Button>
-                <Button>Publicar</Button>
+            <div className='bg-white rounded-md shadow'>
+              <div className='flex flex-col gap-2 p-3'>
+                <h3>Categorias</h3>
+                <div className={'flex flex-col gap-2 max-h-44 pb-1 h-full overflow-auto'}>
+                  {
+                    categories.map((category) => (
+                      <div key={category.id} className={'flex items-center gap-1.5'}>
+                        <Checkbox
+                          checked={selectedCategories.some((selectedCategory) => selectedCategory.id === category.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedCategories((prevSelectedCategories) => [...prevSelectedCategories, category]);
+                            } else {
+                              setSelectedCategories((prevSelectedCategories) => prevSelectedCategories.filter((selectedCategory) => selectedCategory.id !== category.id));
+                            }
+                          }}
+                          id={category.id}
+                          label={category.name}
+                          onChange={(e) => {
+                            console.log(e.target.checked);
+                          }}
+                        />
+                        <Label htmlFor={category.id}>{category.name}</Label>
+                      </div>
+                    ))
+                  }
+                </div>
+                <Button onClick={() => {
+                  setNewCategory(!newCategory);
+                  setNewCategoryName('');
+                  setParentCategory('none');
+                  setShowParentCategory(null);
+                }} variant={'outline'} className={''}
+                        type={'button'}>{newCategory ? 'Cancelar' : 'Añadir nueva'}</Button>
+                {
+                  newCategory &&
+                  <>
+                    <div className='p-2 bg-gray-50 rounded'>
+                      <div className={'text-md'}>
+                        <Label forHtml={'createCategory'}>Nombre de la nueva categoría</Label>
+                        <Input value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)}
+                               id={'createCategory'} name={'createCategory'} placeholder={''} />
+                      </div>
+                      <div className={'text-md'}>
+                        <Label>Categoría padre</Label>
+                        <Select
+                          onValueChange={(value) => {
+                            setParentCategory(value);
+                            if (value === 'none') {
+                              setShowParentCategory(null);
+                            } else {
+                              const selectedCategory = findCategoryById(value, categories);
+                              console.log(selectedCategory);
+                              setShowParentCategory(selectedCategory);
+                            }
+                          }}
+                          defaultValue='none'
+                        >
+                          <SelectTrigger className='w-full'>
+                            <SelectValue placeholder='Seleccione la categoría padre'>
+                              {showParentCategory ? showParentCategory.name : 'Seleccione la categoría padre'}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value='none'>Ninguna</SelectItem>
+                            {categories.map((category) => (
+                              <SelectItem key={category.id} value={category.id}>
+                                {category.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className={'mt-2'}>
+                        <Button onClick={handleAddCategory} type={'button'} variant={'secondary'} className={'w-full'}>Añadir
+                          categoría</Button>
+                      </div>
+                    </div>
+                  </>
+                }
+
               </div>
             </div>
-          </div>
-
-          <div className='bg-white rounded-md shadow'>
-            <div className='flex flex-col gap-2 p-3'>
-              <h3>Categorias</h3>
-              <div className={'flex flex-col gap-2 max-h-44 pb-1 h-full overflow-auto'}>
+            <div className='bg-white rounded-md shadow'>
+              <div className='flex flex-col gap-2 p-3'>
+                <h3>Etiquetas</h3>
+                <div className={'flex flex-col gap-2 max-h-44 pb-1 h-full overflow-auto'}>
+                  {
+                    tags.map((tag) => (
+                      <div key={tag.id} className={'flex items-center gap-1.5'}>
+                        <Checkbox
+                          checked={selectedCategories.some((selectedCategory) => selectedCategory.id === tag.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedCategories((prevSelectedCategories) => [...prevSelectedCategories, tag]);
+                            } else {
+                              setSelectedCategories((prevSelectedCategories) => prevSelectedCategories.filter((selectedCategory) => selectedCategory.id !== tag.id));
+                            }
+                          }}
+                          id={tag.id}
+                          label={tag.name}
+                          onChange={(e) => {
+                            console.log(e.target.checked);
+                          }}
+                        />
+                        <Label htmlFor={tag.id}>{tag.name}</Label>
+                      </div>
+                    ))
+                  }
+                </div>
+                <Button onClick={() => {
+                  setNewCategory(!newCategory);
+                  setNewCategoryName('');
+                  setParentCategory('none');
+                  setShowParentCategory(null);
+                }} variant={'outline'} className={''}
+                        type={'button'}>{newCategory ? 'Cancelar' : 'Añadir nueva'}</Button>
                 {
-                  categories.map((category) => (
-                    <div key={category.id} className={'flex items-center gap-1.5'}>
-                      <Checkbox
-                        id={category.id}
-                        label={category.name}
-                        onChange={(e) => {
-                          console.log(e.target.checked);
-                        }}
-                      />
-                      <Label htmlFor={category.id}>{category.name}</Label>
+                  newCategory &&
+                  <>
+                    <div className='p-2 bg-gray-50 rounded'>
+                      <div className={'text-md'}>
+                        <Label forHtml={'createCategory'}>Nombre de la nueva categoría</Label>
+                        <Input value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)}
+                               id={'createCategory'} name={'createCategory'} placeholder={''} />
+                      </div>
+                      <div className={'text-md'}>
+                        <Label>Categoría padre</Label>
+                        <Select
+                          onValueChange={(value) => {
+                            setParentCategory(value);
+                            if (value === 'none') {
+                              setShowParentCategory(null);
+                            } else {
+                              const selectedCategory = findCategoryById(value, categories);
+                              console.log(selectedCategory);
+                              setShowParentCategory(selectedCategory);
+                            }
+                          }}
+                          defaultValue='none'
+                        >
+                          <SelectTrigger className='w-full'>
+                            <SelectValue placeholder='Seleccione la categoría padre'>
+                              {showParentCategory ? showParentCategory.name : 'Seleccione la categoría padre'}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value='none'>Ninguna</SelectItem>
+                            {categories.map((category) => (
+                              <SelectItem key={category.id} value={category.id}>
+                                {category.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className={'mt-2'}>
+                        <Button onClick={handleAddCategory} type={'button'} variant={'secondary'} className={'w-full'}>Añadir
+                          categoría</Button>
+                      </div>
                     </div>
-                  ))
+                  </>
                 }
               </div>
-              <Button onClick={() => setNewCategory(!newCategory)} variant={'outline'} className={''}
-                      type={'button'}>{newCategory ? 'Cancelar' : 'Añadir nueva'}</Button>
-              {
-                newCategory &&
-                <>
-                  <div className='p-2 bg-gray-50 rounded'>
-                    <div className={'text-md'}>
-                      <Label forHtml={'createCategory'}>Nombre de la nueva categoría</Label>
-                      <Input id={'createCategory'} name={'createCategory'} placeholder={''} />
-                    </div>
-                    <div className={'text-md'}>
-                      <Label>Categoría padre</Label>
-                      <Select
-                        onValueChange={(value) => {
-                          setParentCategory(value);
-                          if (value === 'none') {
-                            setShowParentCategory(null);
-                          } else {
-                            const selectedCategory = findCategoryById(value, categories);
-                            console.log(selectedCategory);
-                            setShowParentCategory(selectedCategory);
-                          }
-                        }}
-                        defaultValue='none'
-                      >
-                        <SelectTrigger className='w-full'>
-                          <SelectValue placeholder='Seleccione la categoría padre'>
-                            {showParentCategory ? showParentCategory.name : 'Seleccione la categoría padre'}
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value='none'>Ninguna</SelectItem>
-                          {categories.map((category) => (
-                            <SelectItem key={category.id} value={category.id}>
-                              {category.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className={"mt-2"}>
-                      <Button type={"button"} variant={"secondary"} className={"w-full"}>Añadir categoría</Button>
-                    </div>
-                  </div>
-                </>
-              }
-
             </div>
           </div>
-          <div className='bg-white rounded-md shadow'>
-            <div className='flex flex-col gap-2 p-3'>
-              <h3>Etiquetas</h3>
-            </div>
-          </div>
-        </div>
-      </form>
-    </>
-  );
-};
+        </form>
+      </>
+    );
+  }
+;
 
 export default CreateForm;
