@@ -32,10 +32,17 @@ const WordpressProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 
   const fetchPosts = async ({ status = 'publish' }: { status?: string }) => {
     try {
-      if (!completeUser || !completeUser.token) {
+      /*if (!completeUser || !completeUser.token) {
         throw new Error('Usuario no autenticado o token no disponible');
-      }
+      }*/
 
+      /*
+      * {
+          headers: {
+            'Authorization': `Bearer ${completeUser.token}`,
+          },
+        },
+      * */
       const response = await axios.get(
         `${ServerUrl}/wordpress/posts?userId=${completeUser._id}&status=${status}`,
         {

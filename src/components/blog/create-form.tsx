@@ -575,7 +575,7 @@ const CreateForm: React.FC<Props> = () => {
                 <h3>Categorias</h3>
                 <div className={'flex flex-col gap-2 max-h-44 pb-1 h-full overflow-auto'}>
                   {
-                    categories.map((category) => (
+                    categories && categories.length > 0 && categories?.map((category) => (
                       <div key={category.id} className={'flex items-center gap-1.5'}>
                         <Checkbox
                           checked={selectedCategories.some((selectedCategory) => selectedCategory.id === category.id)}
@@ -658,7 +658,7 @@ const CreateForm: React.FC<Props> = () => {
                 <h3>Etiquetas</h3>
                 <div className={'flex flex-col gap-2 max-h-44 pb-1 h-full overflow-auto'}>
                   {
-                    tags.map((tag) => (
+                    tags && tags.length > 0 && tags?.map((tag) => (
                       <div key={tag.id} className={'flex items-center gap-1.5'}>
                         <Checkbox
                           checked={selectedCategories.some((selectedCategory) => selectedCategory.id === tag.id)}

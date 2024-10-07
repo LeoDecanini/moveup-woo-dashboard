@@ -79,24 +79,21 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 
   const fetchSession = async () => {
     setLoading(true);
-    const url = `${ServerUrl}/platform-users/login/`;
+    const url = `${ServerUrl}/auth/login/`;
 
     try {
       const response = await axios.post(url, {
         email: 'maxi@moveup.digital',
+        password: "Contrasena@1"
       });
 
       if (response.status === 201) {
         console.log('Session fetched successfully:', response.data);
         setCompleteUser({
-          ...response.data.user,
+          ...response.data.user[0],
           token: response.data.token,
         });
         console.log('aca');
-        console.log({
-          ...response.data.user._doc,
-          token: response.data.access_token,
-        });
       } else {
         console.error(`Unexpected response status: ${response.status}`);
       }

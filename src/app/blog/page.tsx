@@ -151,7 +151,7 @@ const BlogPage = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  postsByStatus[selectedStatus].map((post, index) => (
+                  postsByStatus &&  postsByStatus[selectedStatus] && postsByStatus[selectedStatus].length > 0 && postsByStatus[selectedStatus].map((post, index) => (
                     <TableRow key={index}>
                       <TableCell className='font-medium'>{post.title.rendered || <em className={"opacity-70"}>Sin título</em>}</TableCell>
                       <TableCell>
