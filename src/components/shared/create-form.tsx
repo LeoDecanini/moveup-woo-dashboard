@@ -1,20 +1,31 @@
 'use client';
 
 /* React */
-import React, { FormEvent, useEffect, useState } from 'react';
+import React, { FormEvent, use, useEffect, useState } from 'react';
+import { useWoocommerce } from '@/context/woocommerce-context';
 import { useWordpress } from '@/context/wordpress-context';
+import axios from 'axios';
+import { format } from 'date-fns';
+import { CalendarIcon } from 'lucide-react';
 import { DropzoneOptions } from 'react-dropzone';
 import { BsPinFill } from 'react-icons/bs';
 import { FaSearch } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 import { ReactSortable } from 'react-sortablejs';
 
+import { cn, ServerUrl } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
 import { Input } from '@/components/ui/input';
 /* import axios from "axios"; */
 
 /* Shadcn */
 import { Label } from '@/components/ui/label';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Select,
@@ -44,6 +55,7 @@ import PlateEditor from '../plate-editor';
 import { buttonVariants } from '../plate-ui/button';
 import { Checkbox } from '../ui/checkbox';
 import { Textarea } from '../ui/textarea';
+import MoveUpLoader from './moveup-loader';
 
 interface Props {}
 
@@ -119,7 +131,8 @@ const CreateForm: React.FC<Props> = () => {
   const [variations, setVariations] = useState<any>(null);
   const [files, setFiles] = useState<File[] | null>([]);
   const [filesGallery, setFilesGallery] = useState<File[] | null>([]);
-  const { fetchCategories, addCategory } = useWordpress();
+  const { fetchCategories, fetchTags, addCategory, addTag } = useWordpress();
+  const { createProduct } = useWoocommerce();
   const [newCategory, setNewCategory] = useState<boolean>(false);
   const [newCategoryName, setNewCategoryName] = useState<string>('');
   const [selectedCategories, setSelectedCategories] = useState<any[]>([]);
@@ -128,6 +141,13 @@ const CreateForm: React.FC<Props> = () => {
   const [showParentCategory, setShowParentCategory] = useState<any>('none');
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newTagsName, setNewTagsName] = useState<any[]>([]);
+  const [newTag, setNewTag] = useState<boolean>(false);
+  const [newTagName, setNewTagName] = useState<any[]>([]);
+  const [selectedTags, setSelectedTags] = useState<any[]>([]);
+  const [tags, setTags] = useState<any[]>([]);
+  const [rebajaInicio, setRebajaInicio] = React.useState<Date>();
+  const [rebajaFin, setRebajaFin] = React.useState<Date>();
 
   const [filters, setFilters] = useState({
     products: null,
@@ -153,6 +173,9 @@ const CreateForm: React.FC<Props> = () => {
   useEffect(() => {
     fetchCategories().then((data) => {
       setCategories(data);
+    });
+    fetchTags().then((data) => {
+      setTags(data);
     });
   }, []);
 
@@ -230,6 +253,10 @@ const CreateForm: React.FC<Props> = () => {
       height: 0,
     },
     program: false,
+    files: [],
+    filesGallery: [],
+    date_on_sale_from: null,
+    date_on_sale_to: null,
   });
 
   useEffect(() => {
@@ -302,7 +329,6 @@ const CreateForm: React.FC<Props> = () => {
               colSpan: 'col-span-1',
               type: 'number',
             },
-
             {
               name: 'date_on_sale_from',
               label: 'Fechas del precio rebajado',
@@ -602,11 +628,44 @@ const CreateForm: React.FC<Props> = () => {
     return !noValid;
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
+  useEffect(() => {
+    console.log(files);
+    setFormData((prevFormData) => ({
+      files: files,
+      filesGallery: filesGallery,
+      rebajaFin: rebajaFin || null,
+      rebajaInicio: rebajaInicio || null,
+      ...prevFormData,
+    }));
+  }, [files, filesGallery, rebajaFin, rebajaInicio]);
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoadingForm(true);
 
     const validateData = validateForm();
+
+    console.log(formData);
+
+    const data = {
+      name: formData['name'],
+      regular_price: "120"
+    }
+
+    console.log(data);
+
+    createProduct(data).then(async (response) => {
+      console.log(response);
+      await fetchTags().then((data) => {
+        setTags(data);
+      });
+
+      setSelectedTags((prevSelectedTags) => [...prevSelectedTags, response]);
+
+      setNewTag(false);
+      //@ts-ignore
+      setNewTagName('');
+    });
 
     setTimeout(() => {
       setLoadingForm(false);
@@ -661,6 +720,23 @@ const CreateForm: React.FC<Props> = () => {
     });
   };
 
+  const handleAddTag = async () => {
+    const data = { name: newTagName };
+
+    addTag(data).then(async (response) => {
+      console.log(response);
+      await fetchTags().then((data) => {
+        setTags(data);
+      });
+
+      setSelectedTags((prevSelectedTags) => [...prevSelectedTags, response]);
+
+      setNewTag(false);
+      //@ts-ignore
+      setNewTagName('');
+    });
+  };
+
   function findCategoryById(id, categories) {
     console.log({ id, categories });
     return categories.find((category) => category.id == id);
@@ -679,10 +755,19 @@ const CreateForm: React.FC<Props> = () => {
     setIsModalOpen(false);
   };
 
-  /* dropzoneGallery */
-
   return (
     <>
+      {loadingForm && (
+        <div className="fixed z-[1000] flex flex-col bg-white/50 dark:bg-black/80 backdrop-blur-sm w-full justify-center items-center h-screen left-0 top-0">
+          <MoveUpLoader className="mb-2" />
+
+          <div className={'text-black dark:text-white w-full text-center'}>
+            Cargando los datos de su producto, <br /> Por favor no recargue la
+            página.
+          </div>
+        </div>
+      )}
+
       {isModalOpen && (
         <Modal image={selectedImage} onClose={handleCloseModal} />
       )}
@@ -1274,6 +1359,83 @@ const CreateForm: React.FC<Props> = () => {
                                                   : 'Programar'}
                                               </Button>
                                             </>
+                                          ) : fieldInfo.type === 'date' ? (
+                                            <>
+                                              {fieldInfo.name ===
+                                              'date_on_sale_from' ? (
+                                                <>
+                                                  <Popover>
+                                                    <PopoverTrigger asChild>
+                                                      <Button
+                                                        variant={'outline'}
+                                                        className={cn(
+                                                          'w-[280px] justify-start text-left font-normal',
+                                                          !rebajaInicio &&
+                                                            'text-muted-foreground'
+                                                        )}
+                                                      >
+                                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                                        {rebajaInicio ? (
+                                                          format(
+                                                            rebajaInicio,
+                                                            'PPP'
+                                                          )
+                                                        ) : (
+                                                          <span>
+                                                            Pick a date
+                                                          </span>
+                                                        )}
+                                                      </Button>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="w-auto p-0">
+                                                      <Calendar
+                                                        mode="single"
+                                                        selected={rebajaInicio}
+                                                        onSelect={
+                                                          setRebajaInicio
+                                                        }
+                                                        initialFocus
+                                                      />
+                                                    </PopoverContent>
+                                                  </Popover>
+                                                </>
+                                              ) : (
+                                                <>
+                                                  <Popover>
+                                                    <PopoverTrigger asChild>
+                                                      <Button
+                                                        variant={'outline'}
+                                                        className={cn(
+                                                          'w-[280px] justify-start text-left font-normal',
+                                                          !rebajaFin &&
+                                                            'text-muted-foreground'
+                                                        )}
+                                                      >
+                                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                                        {rebajaFin ? (
+                                                          format(
+                                                            rebajaFin,
+                                                            'PPP'
+                                                          )
+                                                        ) : (
+                                                          <span>
+                                                            Pick a date
+                                                          </span>
+                                                        )}
+                                                      </Button>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="w-auto p-0">
+                                                      <Calendar
+                                                        mode="single"
+                                                        selected={rebajaFin}
+                                                        onSelect={setRebajaFin}
+                                                        initialFocus
+                                                      />
+                                                    </PopoverContent>
+                                                  </Popover>
+                                                </>
+                                              )}
+                                            </>
                                           ) : (
                                             <>
                                               {fieldInfo.name ===
@@ -1554,135 +1716,6 @@ const CreateForm: React.FC<Props> = () => {
 
             <div className="bg-white rounded-md shadow">
               <div className="flex flex-col gap-2 p-3">
-                <h3>Categorias</h3>
-                <div
-                  className={
-                    'flex flex-col gap-2 max-h-44 pb-1 h-full overflow-auto'
-                  }
-                >
-                  {categories &&
-                    categories.length > 0 &&
-                    categories?.map((category) => (
-                      <div
-                        key={category.id}
-                        className={'flex items-center gap-1.5'}
-                      >
-                        <Checkbox
-                          checked={selectedCategories.some(
-                            (selectedCategory) =>
-                              selectedCategory.id === category.id
-                          )}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedCategories(
-                                (prevSelectedCategories) => [
-                                  ...prevSelectedCategories,
-                                  category,
-                                ]
-                              );
-                            } else {
-                              setSelectedCategories((prevSelectedCategories) =>
-                                prevSelectedCategories.filter(
-                                  (selectedCategory) =>
-                                    selectedCategory.id !== category.id
-                                )
-                              );
-                            }
-                          }}
-                          id={category.id}
-                          // @ts-ignore
-                          label={category.name}
-                          onChange={(e) => {
-                            // @ts-ignore
-                            console.log(e.target.checked);
-                          }}
-                        />
-                        <Label htmlFor={category.id}>{category.name}</Label>
-                      </div>
-                    ))}
-                </div>
-                <Button
-                  onClick={() => {
-                    setNewCategory(!newCategory);
-                    setNewCategoryName('');
-                    setParentCategory('none');
-                    setShowParentCategory(null);
-                  }}
-                  variant={'outline'}
-                  className={''}
-                  type={'button'}
-                >
-                  {newCategory ? 'Cancelar' : 'Agregar nueva'}
-                </Button>
-                {newCategory && (
-                  <>
-                    <div className="p-2 bg-gray-50 rounded">
-                      <div className="text-md">
-                        {/* @ts-ignore */}
-                        <Label forHtml="createCategory">
-                          Nombre de la nueva categoría
-                        </Label>
-                        <Input
-                          value={newCategoryName}
-                          onChange={(e) => setNewCategoryName(e.target.value)}
-                          id={'createCategory'}
-                          name={'createCategory'}
-                          placeholder={''}
-                        />
-                      </div>
-                      <div className="text-md">
-                        <Label>Categoría padre</Label>
-                        <Select
-                          onValueChange={(value) => {
-                            setParentCategory(value);
-                            if (value === 'none') {
-                              setShowParentCategory(null);
-                            } else {
-                              const selectedCategory = findCategoryById(
-                                value,
-                                categories
-                              );
-                              console.log(selectedCategory);
-                              setShowParentCategory(selectedCategory);
-                            }
-                          }}
-                          defaultValue="none"
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Seleccione la categoría padre">
-                              {showParentCategory
-                                ? showParentCategory.name
-                                : 'Seleccione la categoría padre'}
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">Ninguna</SelectItem>
-                            {categories.map((category) => (
-                              <SelectItem key={category.id} value={category.id}>
-                                {category.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className={'mt-2'}>
-                        <Button
-                          onClick={handleAddCategory}
-                          type={'button'}
-                          variant={'secondary'}
-                          className={'w-full'}
-                        >
-                          Agregar categoría
-                        </Button>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-
-            <div className="bg-white rounded-md shadow">
-              <div className="flex flex-col gap-2 p-3">
                 <h3>Imagen principal</h3>
 
                 <FileUploader
@@ -1826,6 +1859,222 @@ const CreateForm: React.FC<Props> = () => {
                     </SheetHeader>
                   </SheetContent>
                 </Sheet>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-md shadow">
+              <div className="flex flex-col gap-2 p-3">
+                <h3>Categorias</h3>
+                <div
+                  className={
+                    'flex flex-col gap-2 max-h-44 pb-1 h-full overflow-auto'
+                  }
+                >
+                  {categories &&
+                    categories.length > 0 &&
+                    categories?.map((category) => (
+                      <div
+                        key={category.id}
+                        className={'flex items-center gap-1.5'}
+                      >
+                        <Checkbox
+                          checked={selectedCategories.some(
+                            (selectedCategory) =>
+                              selectedCategory.id === category.id
+                          )}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedCategories(
+                                (prevSelectedCategories) => [
+                                  ...prevSelectedCategories,
+                                  category,
+                                ]
+                              );
+                            } else {
+                              setSelectedCategories((prevSelectedCategories) =>
+                                prevSelectedCategories.filter(
+                                  (selectedCategory) =>
+                                    selectedCategory.id !== category.id
+                                )
+                              );
+                            }
+                          }}
+                          id={category.id}
+                          // @ts-ignore
+                          label={category.name}
+                          onChange={(e) => {
+                            // @ts-ignore
+                            console.log(e.target.checked);
+                          }}
+                        />
+                        <Label htmlFor={category.id}>{category.name}</Label>
+                      </div>
+                    ))}
+                </div>
+                <Button
+                  onClick={() => {
+                    setNewCategory(!newCategory);
+                    setNewCategoryName('');
+                    setParentCategory('none');
+                    setShowParentCategory(null);
+                  }}
+                  variant={'outline'}
+                  className={''}
+                  type={'button'}
+                >
+                  {newCategory ? 'Cancelar' : 'Agregar nueva'}
+                </Button>
+                {newCategory && (
+                  <>
+                    <div className="p-2 bg-gray-50 rounded">
+                      <div className="text-md">
+                        {/* @ts-ignore */}
+                        <Label forHtml="createCategory">
+                          Nombre de la nueva categoría
+                        </Label>
+                        <Input
+                          value={newCategoryName}
+                          onChange={(e) => setNewCategoryName(e.target.value)}
+                          id={'createCategory'}
+                          name={'createCategory'}
+                          placeholder={''}
+                        />
+                      </div>
+                      <div className="text-md">
+                        <Label>Categoría padre</Label>
+                        <Select
+                          onValueChange={(value) => {
+                            setParentCategory(value);
+                            if (value === 'none') {
+                              setShowParentCategory(null);
+                            } else {
+                              const selectedCategory = findCategoryById(
+                                value,
+                                categories
+                              );
+                              console.log(selectedCategory);
+                              setShowParentCategory(selectedCategory);
+                            }
+                          }}
+                          defaultValue="none"
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Seleccione la categoría padre">
+                              {showParentCategory
+                                ? showParentCategory.name
+                                : 'Seleccione la categoría padre'}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Ninguna</SelectItem>
+                            {categories.map((category) => (
+                              <SelectItem key={category.id} value={category.id}>
+                                {category.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className={'mt-2'}>
+                        <Button
+                          onClick={handleAddCategory}
+                          type={'button'}
+                          variant={'secondary'}
+                          className={'w-full'}
+                        >
+                          Agregar categoría
+                        </Button>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div className="bg-white rounded-md shadow">
+              <div className="flex flex-col gap-2 p-3">
+                <h3>Etiquetas</h3>
+                <div
+                  className={
+                    'flex flex-col gap-2 max-h-44 pb-1 h-full overflow-auto'
+                  }
+                >
+                  {tags &&
+                    tags.length > 0 &&
+                    tags?.map((tag) => (
+                      <div key={tag.id} className={'flex items-center gap-1.5'}>
+                        <Checkbox
+                          checked={selectedTags.some(
+                            (selectedTag) => selectedTag.id === tag.id
+                          )}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedTags((prevSelectedTags) => [
+                                ...prevSelectedTags,
+                                tag,
+                              ]);
+                            } else {
+                              setSelectedTags((prevSelectedTags) =>
+                                prevSelectedTags.filter(
+                                  (selectedTag) => selectedTag.id !== tag.id
+                                )
+                              );
+                            }
+                          }}
+                          id={tag.id}
+                          // @ts-ignore
+                          label={tag.name}
+                          onChange={(e) => {
+                            // @ts-ignore
+                            console.log(e.target.checked);
+                          }}
+                        />
+                        <Label htmlFor={tag.id}>{tag.name}</Label>
+                      </div>
+                    ))}
+                </div>
+                <Button
+                  onClick={() => {
+                    setNewTag(!newTag);
+                    // @ts-ignore
+                    setNewTagName('');
+                  }}
+                  variant={'outline'}
+                  className={''}
+                  type={'button'}
+                >
+                  {newTag ? 'Cancelar' : 'Agregar nueva'}
+                </Button>
+                {newTag && (
+                  <>
+                    <div className="p-2 bg-gray-50 rounded">
+                      <div className={'text-md'}>
+                        {/* @ts-ignore */}
+                        <Label forHtml={'newTag'}>
+                          Nombre de la nueva categoría
+                        </Label>
+                        <Input
+                          value={newTagName}
+                          // @ts-ignore
+                          onChange={(e) => setNewTagName(e.target.value)}
+                          id={'newTag'}
+                          name={'newTag'}
+                          placeholder={''}
+                        />
+                      </div>
+                      <div className={'mt-2'}>
+                        <Button
+                          onClick={handleAddTag}
+                          type={'button'}
+                          variant={'secondary'}
+                          className={'w-zfull'}
+                        >
+                          Agregar etiqueta
+                        </Button>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>

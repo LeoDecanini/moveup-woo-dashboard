@@ -8,6 +8,7 @@ import React, {
 import axios from 'axios';
 
 import { HomeUrl, ServerUrl } from '@/lib/utils';
+
 import { useAuth } from './platform-user-context';
 
 interface WordpressContextProps {
@@ -22,10 +23,11 @@ interface WordpressContextProps {
   addTag: (sett: any) => any; // Tag[]
 }
 
-const WordpressContext = createContext<WordpressContextProps | undefined>(undefined);
+const WordpressContext = createContext<WordpressContextProps | undefined>(
+  undefined
+);
 
 const WordpressProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-
   const { completeUser } = useAuth();
 
   const [posts, setPosts] = useState(null);
@@ -49,9 +51,9 @@ const WordpressProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         `${ServerUrl}/wordpress/posts?userId=${completeUser._id}&status=${status}`,
         {
           headers: {
-            'Authorization': `Bearer ${completeUser.token}`,
+            Authorization: `Bearer ${completeUser.token}`,
           },
-        },
+        }
       );
 
       console.log('posts', response.data);
@@ -63,47 +65,58 @@ const WordpressProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   };
 
   const fetchPostsCountByStatus = async () => {
-    const response = await axios.get(`${ServerUrl}/wordpress/posts/status-count?userId=${completeUser._id}`);
+    const response = await axios.get(
+      `${ServerUrl}/wordpress/posts/status-count?userId=${completeUser._id}`
+    );
     console.log('post count status', response.data);
     return response.data;
   };
 
   const fetchCategories = async () => {
-    const response = await axios.get(`${ServerUrl}/wordpress/categories?userId=${completeUser._id}`);
+    const response = await axios.get(
+      `${ServerUrl}/wordpress/categories?userId=${completeUser._id}`
+    );
     console.log('categories', response.data);
     return response.data;
   };
 
   const fetchTags = async () => {
-    const response = await axios.get(`${ServerUrl}/wordpress/tags?userId=${completeUser._id}`);
+    const response = await axios.get(
+      `${ServerUrl}/wordpress/tags?userId=${completeUser._id}`
+    );
     console.log('tags', response.data);
     return response.data;
   };
 
   const addCategory = async (data: any) => {
     console.log('calling');
-    const response = await axios.post(`${ServerUrl}/wordpress/categories?userId=${completeUser._id}`,
-      data);
+    const response = await axios.post(
+      `${ServerUrl}/wordpress/categories?userId=${completeUser._id}`,
+      data
+    );
     console.log('category', response.data);
     return response.data;
   };
 
   const addTag = async (data: any) => {
     console.log('calling');
-    const response = await axios.post(`${ServerUrl}/wordpress/tags?userId=${completeUser._id}`,
-      data);
+    const response = await axios.post(
+      `${ServerUrl}/wordpress/tags?userId=${completeUser._id}`,
+      data
+    );
     console.log('category', response.data);
     return response.data;
   };
 
   const addTagsMultiple = async (data) => {
     console.log({ addTagsMultiple: data });
-    const response = await axios.post(`${ServerUrl}/wordpress/tags/multiple?userId=${completeUser._id}`,
-      data);
+    const response = await axios.post(
+      `${ServerUrl}/wordpress/tags/multiple?userId=${completeUser._id}`,
+      data
+    );
     console.log('category', response.data);
     return response.data;
   };
-
 
   const [post, setPost] = useState(null);
   const [category, setCategory] = useState(null);
