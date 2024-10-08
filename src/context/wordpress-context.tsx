@@ -18,6 +18,7 @@ interface WordpressContextProps {
   fetchCategories: () => any; // Category[]
   fetchTags: () => any; // Tag[]
   addCategory: (sett: any) => any; // Tag[]
+  fetchPostsCountByStatus: () => any;
 }
 
 const WordpressContext = createContext<WordpressContextProps | undefined>(undefined);
@@ -58,6 +59,12 @@ const WordpressProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       console.error('Error fetching posts:', error);
       throw error;
     }
+  };
+
+  const fetchPostsCountByStatus = async () => {
+    const response = await axios.get(`${ServerUrl}/wordpress/posts/status-count?userId=${completeUser._id}`);
+    console.log('post count status', response.data);
+    return response.data;
   };
 
   const fetchCategories = async () => {
@@ -109,6 +116,7 @@ const WordpressProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         fetchCategories,
         fetchTags,
         addCategory,
+        fetchPostsCountByStatus
       }}
     >
       {children}

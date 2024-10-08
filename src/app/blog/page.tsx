@@ -23,7 +23,7 @@ import { Button } from '@/components/ui/button';
 import { FiRefreshCw } from 'react-icons/fi';
 
 const BlogPage = () => {
-  const { fetchPosts } = useWordpress();
+  const { fetchPosts, fetchPostsCountByStatus } = useWordpress();
   const { completeUser } = useAuth();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -37,6 +37,22 @@ const BlogPage = () => {
   });
 
   const [isLoading, setIsLoading] = useState(false);
+
+  /*fetchPostCountByStatus*/
+  const [postsCountByStatus, setPostsCountByStatus] = useState({
+    publish: 0,
+    draft: 0,
+    pending: 0,
+    future: 0,
+    private: 0,
+    trash: 0,
+    'auto-draft': 0,
+    inherit: 0,
+    'request-pending': 0,
+    'request-confirmed': 0,
+    'request-failed': 0,
+    'request-completed': 0,
+  });
 
   const statusFromUrl = searchParams.get('status') || 'publish';
 
@@ -97,6 +113,19 @@ const BlogPage = () => {
       setIsLoading(false);
       /* }, 2500); */
     }
+
+    try {
+      const count = await fetchPostsCountByStatus();
+      /* setTimeout(() => { */
+      setPostsCountByStatus(count);
+      /* }, 2500); */
+    } catch (error) {
+      console.error('Error fetching count:', error);
+    } finally {
+      /* setTimeout(() => { */
+      setIsLoading(false);
+      /* }, 2500); */
+    }
   };
 
   useEffect(() => {
@@ -122,6 +151,13 @@ const BlogPage = () => {
             {postStatus.map((status) => (
               <TabsTrigger key={status.slug} value={status.slug}>
                 {status.name}
+                <Badge
+                  className={`ml-2 px-1.5`}
+
+                  variant='outline'
+                >
+                  {postsCountByStatus[status.slug]}
+                </Badge>
               </TabsTrigger>
             ))}
           </TabsList>
@@ -151,9 +187,10 @@ const BlogPage = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  postsByStatus &&  postsByStatus[selectedStatus] && postsByStatus[selectedStatus].length > 0 && postsByStatus[selectedStatus].map((post, index) => (
+                  postsByStatus && postsByStatus[selectedStatus] && postsByStatus[selectedStatus].length > 0 && postsByStatus[selectedStatus].map((post, index) => (
                     <TableRow key={index}>
-                      <TableCell className='font-medium'>{post.title.rendered || <em className={"opacity-70"}>Sin título</em>}</TableCell>
+                      <TableCell className='font-medium'>{post.title.rendered ||
+                        <em className={'opacity-70'}>Sin título</em>}</TableCell>
                       <TableCell>
                         <Badge
                           className={``}
