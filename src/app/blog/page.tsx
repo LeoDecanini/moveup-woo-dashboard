@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Joyride, { STATUS, Step } from 'react-joyride';
 import Link from 'next/link';
 import { useWordpress } from '@/context/wordpress-context';
 import { useAuth } from '@/context/platform-user-context';
@@ -23,7 +24,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 
-import { FaLock, FaPencil, FaRegTrashCan } from "react-icons/fa6";
+import { FaLock, FaPencil, FaRegTrashCan, FaCircleInfo } from "react-icons/fa6";
 import { FaExternalLinkAlt } from "react-icons/fa";
 
 import { Badge } from '@/components/ui/badge';
@@ -38,6 +39,23 @@ const BlogPage = () => {
   const { completeUser } = useAuth();
   const searchParams = useSearchParams();
   const router = useRouter();
+
+  const [runTour, setRunTour] = useState(false);
+
+  const steps: Step[] = [
+    {
+      target: '#refresh-button',
+      content: 'Este botón te permite actualizar la lista de entradas.',
+    },
+  ];
+
+
+  const handleJoyrideCallback = (data) => {
+    const { status } = data;
+    if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
+      setRunTour(false);
+    }
+  };
 
   const acceptedStatuses = ['publish', 'future', 'draft', 'trash', 'pending']
 
@@ -64,7 +82,7 @@ const BlogPage = () => {
     'draft': 0,
     'pending': 0,
     'future': 0,
-   /*  'private': 0, */
+    /*  'private': 0, */
     'trash': 0,
     /* 'auto-draft': 0,
     'inherit': 0,
@@ -212,8 +230,10 @@ const BlogPage = () => {
 
   return (
     <div className='p-4 max-w-6xl mx-auto'>
-      <h1 className='text-xl font-semibold mb-4'>Administrar entradas</h1>
-
+        <h1 className='text-xl font-semibold mb-4'>Administrar entradas</h1>
+        {/* <Button onClick={() => setRunTour(true)} variant="outline">
+        Iniciar Tutorial
+      </Button>*/}
       <Tabs
         defaultValue={selectedStatus}
         onValueChange={(value) => setSelectedStatus(value)}
@@ -224,13 +244,13 @@ const BlogPage = () => {
               <TabsTrigger key={status.slug} value={status.slug}>
                 {status.name}
                 <Badge
-                className="px-1.5 ml-1"
-                style={selectedStatus === status.slug ? {
-                  backgroundColor: getPostStatusBySlug(status.slug)?.light.bg,
-                  color: getPostStatusBySlug(status.slug)?.light.color,
+                  className="px-1.5 ml-1"
+                  style={selectedStatus === status.slug ? {
+                    backgroundColor: getPostStatusBySlug(status.slug)?.light.bg,
+                    color: getPostStatusBySlug(status.slug)?.light.color,
                   } : undefined
-                }
-                variant={selectedStatus === status.slug ? 'default' : 'outline'}
+                  }
+                  variant={selectedStatus === status.slug ? 'default' : 'outline'}
                 >
                   {postsCountByStatus[status.slug]}
                 </Badge>
@@ -238,7 +258,7 @@ const BlogPage = () => {
             ))}
           </TabsList>
           <div className={'min-w-[120.43px] flex items-end justify-end'}>
-            <Button disabled={isLoading} onClick={loadPosts} variant='outline'>
+            <Button id="refresh-button" disabled={isLoading} onClick={loadPosts} variant='outline'>
               {isLoading && <FiRefreshCw className={'animate-spin mr-1.5'} />}
               Actualizar
             </Button>
@@ -268,10 +288,20 @@ const BlogPage = () => {
                   postsByStatus && postsByStatus[selectedStatus] && postsByStatus[selectedStatus].length > 0 && postsByStatus[selectedStatus].map((post, index) => (
                     <TableRow key={index}>
                       <TableCell className='font-medium flex items-center justify-start gap-1'>
-                        {post.content.protected && <FaLock className="text-primary text-xs"/> }
+                        {post.content.protected &&
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger><FaLock className="text-primary text-xs" /> </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Esta publicación tiene contraseña</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+
+                        }
                         {post.title.rendered ||
-                        <em className={'opacity-70'}>Sin título</em>}
-                        </TableCell>
+                          <em className={'opacity-70'}>Sin título</em>}
+                      </TableCell>
                       <TableCell>
                         <Badge
                           className={``}
@@ -286,43 +316,43 @@ const BlogPage = () => {
                       </TableCell>
                       <TableCell>{new Date(post.date).toLocaleDateString()}</TableCell>
                       <TableCell className="flex items-center justify-center gap-2">
-                          {
-                            post.link &&
-                            <Link className={`text-primary`} href={post.link} target="_blank">
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger><FaExternalLinkAlt /></TooltipTrigger>
-                                  <TooltipContent>
-                                    <p>Ver en la web</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            </Link>
-                          }
-         {
-                            post.link &&
-                            <Link className={`text-orange-400`} href={`/blog/edit/${post.id}`}>
-                                                            <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger><FaPencil /></TooltipTrigger>
-                                  <TooltipContent className="bg-orange-400">
-                                    <p>Editar</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            </Link>
-                          }
-                                   {
-                            post.link &&
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger><FaRegTrashCan className="text-destructive" /></TooltipTrigger>
-                                  <TooltipContent className="bg-destructive">
-                                    <p>Mover a la papelera</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                          }
+                        {
+                          post.link &&
+                          <Link className={`text-primary`} href={post.link} target="_blank">
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger><FaExternalLinkAlt /></TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Ver en la web</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </Link>
+                        }
+                        {
+                          post.link &&
+                          <Link className={`text-orange-400`} href={`/blog/edit/${post.id}`}>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger><FaPencil /></TooltipTrigger>
+                                <TooltipContent className="bg-orange-400">
+                                  <p>Editar</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </Link>
+                        }
+                        {
+                          post.link &&
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger><FaRegTrashCan className="text-destructive" /></TooltipTrigger>
+                              <TooltipContent className="bg-destructive">
+                                <p>Mover a la papelera</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        }
                       </TableCell>
                     </TableRow>
                   ))
@@ -332,6 +362,15 @@ const BlogPage = () => {
           </TabsContent>
         ))}
       </Tabs>
+       <Joyride
+        steps={steps}
+        run={runTour}
+        continuous
+        scrollToFirstStep
+        showProgress
+        showSkipButton
+        callback={handleJoyrideCallback}
+      />
     </div>
   );
 };
