@@ -257,6 +257,8 @@ const CreateForm: React.FC<Props> = () => {
     filesGallery: [],
     date_on_sale_from: null,
     date_on_sale_to: null,
+    price: "",
+    discounted_price: "",
   });
 
   useEffect(() => {
@@ -649,7 +651,7 @@ const CreateForm: React.FC<Props> = () => {
 
     const data = {
       name: formData['name'],
-      regular_price: "120"
+      regular_price: formData['price'],
     }
 
     console.log(data);
