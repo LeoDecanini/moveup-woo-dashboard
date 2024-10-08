@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import { AuthProvider } from '@/context/platform-user-context';
 import { WordpressProvider } from '@/context/wordpress-context';
-import { LayoutProvider } from './layout-provider' 
+import { WoocommerceProvider } from '@/context/woocommerce-context';
+import { LayoutProvider } from './layout-provider'
 
 export const Providers = ({
   children,
@@ -15,10 +16,12 @@ export const Providers = ({
   return (
     <AuthProvider>
       <WordpressProvider>
+        <WoocommerceProvider>
           <LayoutProvider>
             {children}
           </LayoutProvider>
-        </WordpressProvider>
+        </WoocommerceProvider>
+      </WordpressProvider>
     </AuthProvider>
   );
 };
