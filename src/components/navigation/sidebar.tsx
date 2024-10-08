@@ -141,7 +141,7 @@ const Sidebar = ({
       `}
       >
         <div
-          className={`w-full h-full transition-all duration-300 p-6 pl-2 flex flex-col items-center justify-center`}
+          className={`w-full h-full transition-all duration-300 p-4 pl-1 flex flex-col items-center justify-center`}
         >
           {/* <NavBar /> */}
 
