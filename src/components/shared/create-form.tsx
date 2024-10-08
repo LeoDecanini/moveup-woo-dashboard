@@ -2,6 +2,7 @@
 
 /* React */
 import React, { FormEvent, use, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useWoocommerce } from '@/context/woocommerce-context';
 import { useWordpress } from '@/context/wordpress-context';
 import axios from 'axios';
@@ -257,8 +258,8 @@ const CreateForm: React.FC<Props> = () => {
     filesGallery: [],
     date_on_sale_from: null,
     date_on_sale_to: null,
-    price: "",
-    discounted_price: "",
+    price: '',
+    discounted_price: '',
   });
 
   useEffect(() => {
@@ -641,6 +642,8 @@ const CreateForm: React.FC<Props> = () => {
     }));
   }, [files, filesGallery, rebajaFin, rebajaInicio]);
 
+  const router = useRouter();
+
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoadingForm(true);
@@ -652,26 +655,18 @@ const CreateForm: React.FC<Props> = () => {
     const data = {
       name: formData['name'],
       regular_price: formData['price'],
-    }
+      sale_price: formData['discounted_price'],
+    };
 
     console.log(data);
 
     createProduct(data).then(async (response) => {
       console.log(response);
       await fetchTags().then((data) => {
-        setTags(data);
+        router.push('/');
+        setLoadingForm(false);
       });
-
-      setSelectedTags((prevSelectedTags) => [...prevSelectedTags, response]);
-
-      setNewTag(false);
-      //@ts-ignore
-      setNewTagName('');
     });
-
-    setTimeout(() => {
-      setLoadingForm(false);
-    }, 5000);
   };
 
   const handleSearchChange = (e: any) => {
