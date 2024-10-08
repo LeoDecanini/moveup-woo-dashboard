@@ -72,7 +72,7 @@ const Sidebar = ({
       >
         <div className="flex flex-col h-full">
           <Link href={'/'}>
-            <div className="flex items-center justify-between p-4">
+            <div className="flex items-center justify-between p-4 pt-6">
               <div className="flex items-center gap-1">
                 <img
                   src="/ICONO_MAIN.png"
@@ -141,7 +141,7 @@ const Sidebar = ({
       `}
       >
         <div
-          className={`w-full h-full transition-all duration-300 p-4 pl-1 flex flex-col items-center justify-center`}
+          className={`w-full h-full transition-all duration-300 p-6 pl-2 flex flex-col items-center justify-center`}
         >
           {/* <NavBar /> */}
 
