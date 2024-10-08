@@ -11,21 +11,19 @@ export const LayoutProvider = ({
 }: Readonly<{
   children: React.ReactNode;
 }>) => {
-
-  const {completeUser} = useAuth()
+  const { completeUser } = useAuth();
 
   return (
-      <main>
-        {completeUser ? (
-          <Sidebar>{children}</Sidebar>
-        ) : (
-          <>
-            <div className="min-h-svh grid place-items-center">
-              <MoveUpLoader/>
-            </div>
-          </>
-        )}
-      </main>
-
+    <main>
+      {completeUser ? (
+        <Sidebar>{children}</Sidebar>
+      ) : (
+        <>
+          <div className="min-h-svh grid place-items-center">
+            <MoveUpLoader />
+          </div>
+        </>
+      )}
+    </main>
   );
 };

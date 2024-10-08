@@ -1,9 +1,9 @@
 export type SiteConfig = typeof siteConfig;
 
 export const siteConfig = {
-  name: 'Next.js',
+  name: 'MoveUp | Dashboard',
   description:
-    'Rich-text editor components built with Radix UI and Tailwind CSS.',
+    'Panel de control intuitivo para gestionar su empresa.',
   mainNav: [
     {
       title: 'Home',

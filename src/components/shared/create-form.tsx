@@ -2,9 +2,12 @@
 
 /* React */
 import React, { FormEvent, useEffect, useState } from 'react';
+import { useWordpress } from '@/context/wordpress-context';
+import { DropzoneOptions } from 'react-dropzone';
 import { BsPinFill } from 'react-icons/bs';
 import { FaSearch } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
+import { ReactSortable } from 'react-sortablejs';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,13 +23,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 /* import Pagination from "../shared/pagination"; */
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  FileInput,
+  FileUploader,
+  FileUploaderContent,
+  FileUploaderItem,
+} from '@/components/extension/file-uploader';
 
 import PlateEditor from '../plate-editor';
+import { buttonVariants } from '../plate-ui/button';
 import { Checkbox } from '../ui/checkbox';
 import { Textarea } from '../ui/textarea';
-import { ImageUpload } from './image-upload';
 
 interface Props {}
 
@@ -69,6 +86,27 @@ function getQueryParam(param: string): string | null {
   return urlParams.get(param);
 }
 
+const Modal = ({ image, onClose }: any) => {
+  if (!image) return null;
+
+  return (
+    <div
+      onClick={(e) => {
+        onClose();
+      }}
+      className="fixed inset-0 !z-50 flex items-center justify-center bg-black bg-opacity-50"
+    >
+      <div className="relative max-w-4xl w-full">
+        <img
+          src={URL.createObjectURL(image)}
+          alt="Selected"
+          className="w-full h-auto max-h-[90svh] object-contain rounded-lg"
+        />
+      </div>
+    </div>
+  );
+};
+
 const CreateForm: React.FC<Props> = () => {
   const [editadData, setEditadData] = useState<any | null>(null);
   const [isEditedPropety, setIsEditedPropety] = useState<boolean>(false);
@@ -80,10 +118,43 @@ const CreateForm: React.FC<Props> = () => {
   const [attributes, setAttributes] = useState<any>([]);
   const [variations, setVariations] = useState<any>(null);
   const [files, setFiles] = useState<File[] | null>([]);
+  const [filesGallery, setFilesGallery] = useState<File[] | null>([]);
+  const { fetchCategories, addCategory } = useWordpress();
+  const [newCategory, setNewCategory] = useState<boolean>(false);
+  const [newCategoryName, setNewCategoryName] = useState<string>('');
+  const [selectedCategories, setSelectedCategories] = useState<any[]>([]);
+  const [parentCategory, setParentCategory] = useState<number | string>('none');
+  const [categories, setCategories] = useState<any[]>([]);
+  const [showParentCategory, setShowParentCategory] = useState<any>('none');
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [filters, setFilters] = useState({
     products: null,
   });
+
+  const dropzone = {
+    accept: {
+      'image/*': ['.jpg', '.jpeg', '.png'],
+    },
+    maxFiles: 1,
+    maxSize: 1 * 1920 * 1080,
+  } satisfies DropzoneOptions;
+
+  const dropzoneGallery = {
+    accept: {
+      'image/*': ['.jpg', '.jpeg', '.png'],
+    },
+    multiple: true,
+    maxFiles: 10,
+    maxSize: 1 * 1920 * 1080,
+  } satisfies DropzoneOptions;
+
+  useEffect(() => {
+    fetchCategories().then((data) => {
+      setCategories(data);
+    });
+  }, []);
 
   const tabs = [
     {
@@ -187,7 +258,6 @@ const CreateForm: React.FC<Props> = () => {
           label: 'Nombre del producto',
           colSpan: 'col-span-2 min-[720px]:col-span-1 min-[1400px]:col-span-2',
           type: 'text',
-          min: 3,
         },
         {
           name: 'slug',
@@ -568,8 +638,55 @@ const CreateForm: React.FC<Props> = () => {
     });
   }, [attributes]);
 
+  const handleAddCategory = async () => {
+    const parent = parentCategory === 'none' ? 0 : parentCategory;
+    const data = {
+      name: newCategoryName,
+      parent,
+    };
+
+    addCategory(data).then(async (response) => {
+      console.log(response);
+      await fetchCategories().then((data) => {
+        setCategories(data);
+      });
+
+      setSelectedCategories((prevSelectedCategories) => [
+        ...prevSelectedCategories,
+        response,
+      ]);
+
+      setNewCategory(false);
+      setNewCategoryName('');
+    });
+  };
+
+  function findCategoryById(id, categories) {
+    console.log({ id, categories });
+    return categories.find((category) => category.id == id);
+  }
+
+  const hasFiles = files && files.length > 0;
+  const hasFilesGallery = filesGallery && filesGallery.length > 0;
+
+  const handleImageClick = (file: File) => {
+    setSelectedImage(file);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedImage(null);
+    setIsModalOpen(false);
+  };
+
+  /* dropzoneGallery */
+
   return (
     <>
+      {isModalOpen && (
+        <Modal image={selectedImage} onClose={handleCloseModal} />
+      )}
+
       <div className="bg-white rounded-md shadow flex flex-col">
         <div className="flex flex-col gap-3 min-[550px]:gap-0 min-[550px]:flex-row justify-between items-center w-full border-b p-3">
           <h1 className="text-2xl sm:text-4xl text-secondary font-semibold">
@@ -596,9 +713,9 @@ const CreateForm: React.FC<Props> = () => {
         </div>
       </div>
 
-      <form className={"flex gap-4"} onSubmit={handleSubmit}>
+      <form className={'flex gap-4'} onSubmit={handleSubmit}>
         <>
-          <div>
+          <div className={'w-full'}>
             {fieldsDataTypeSimple.map((data, index) => (
               <div className="grid grid-cols-2 min-[1400px]:grid-cols-3 gap-3 rounded-md mt-5 bg-white p-3 shadow">
                 <h4 className={`col-span-2 min-[1400px]:col-span-3 border-b`}>
@@ -1136,7 +1253,8 @@ const CreateForm: React.FC<Props> = () => {
                                           ) : fieldInfo.type === 'options' ? (
                                             <>
                                               <Button
-                                                onClick={() => {
+                                                onClick={(e) => {
+                                                  e.preventDefault();
                                                   setFormData(
                                                     (prevFormData) => ({
                                                       ...prevFormData,
@@ -1321,11 +1439,28 @@ const CreateForm: React.FC<Props> = () => {
                               />
                             </>
                           ) : (
-                            <div className="min-h-96">
-                              <div className="min-h-96 !h-auto rounded-lg border bg-background shadow">
-                                <PlateEditor />
-                              </div>
-                            </div>
+                            <>
+                              {/*<div className="min-h-96">
+                                <div className="min-h-96 !h-auto rounded-lg border bg-background shadow">
+                                  <PlateEditor />
+                                </div>
+                              </div>*/}
+
+                              <Textarea
+                                id={fieldInfo.name}
+                                onChange={(event) => {
+                                  const value = event.target.value;
+                                  setFormData((prevFormData) => ({
+                                    ...prevFormData,
+                                    [fieldInfo.name]: value,
+                                  }));
+                                  validateField(fieldInfo.name, value);
+                                }}
+                                value={formData[fieldInfo.name] || ''}
+                                name={fieldInfo.name}
+                                className={'h-52 resize-none w-full'}
+                              />
+                            </>
                           )}
 
                           {errorMessages[fieldInfo.name] && (
@@ -1341,7 +1476,7 @@ const CreateForm: React.FC<Props> = () => {
               </div>
             ))}
 
-            <div className="grid grid-cols-2 min-[1400px]:grid-cols-3 gap-3 rounded-md mt-5 bg-white p-3 shadow">
+            {/* <div className="grid grid-cols-2 min-[1400px]:grid-cols-3 gap-3 rounded-md mt-5 bg-white p-3 shadow">
               <h4 className={`col-span-2 min-[1400px]:col-span-3 border-b`}>
                 Imagenes
               </h4>
@@ -1349,7 +1484,7 @@ const CreateForm: React.FC<Props> = () => {
               <div className="col-span-2 min-[1400px]:col-span-3 grid min-[1740px]:grid-cols-3 gap-3">
                 <ImageUpload files={files} setFiles={setFiles} />
               </div>
-            </div>
+            </div>*/}
           </div>
 
           <div className="flex flex-col gap-4 mt-5 w-96">
@@ -1420,6 +1555,277 @@ const CreateForm: React.FC<Props> = () => {
             <div className="bg-white rounded-md shadow">
               <div className="flex flex-col gap-2 p-3">
                 <h3>Categorias</h3>
+                <div
+                  className={
+                    'flex flex-col gap-2 max-h-44 pb-1 h-full overflow-auto'
+                  }
+                >
+                  {categories &&
+                    categories.length > 0 &&
+                    categories?.map((category) => (
+                      <div
+                        key={category.id}
+                        className={'flex items-center gap-1.5'}
+                      >
+                        <Checkbox
+                          checked={selectedCategories.some(
+                            (selectedCategory) =>
+                              selectedCategory.id === category.id
+                          )}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedCategories(
+                                (prevSelectedCategories) => [
+                                  ...prevSelectedCategories,
+                                  category,
+                                ]
+                              );
+                            } else {
+                              setSelectedCategories((prevSelectedCategories) =>
+                                prevSelectedCategories.filter(
+                                  (selectedCategory) =>
+                                    selectedCategory.id !== category.id
+                                )
+                              );
+                            }
+                          }}
+                          id={category.id}
+                          // @ts-ignore
+                          label={category.name}
+                          onChange={(e) => {
+                            // @ts-ignore
+                            console.log(e.target.checked);
+                          }}
+                        />
+                        <Label htmlFor={category.id}>{category.name}</Label>
+                      </div>
+                    ))}
+                </div>
+                <Button
+                  onClick={() => {
+                    setNewCategory(!newCategory);
+                    setNewCategoryName('');
+                    setParentCategory('none');
+                    setShowParentCategory(null);
+                  }}
+                  variant={'outline'}
+                  className={''}
+                  type={'button'}
+                >
+                  {newCategory ? 'Cancelar' : 'Agregar nueva'}
+                </Button>
+                {newCategory && (
+                  <>
+                    <div className="p-2 bg-gray-50 rounded">
+                      <div className="text-md">
+                        {/* @ts-ignore */}
+                        <Label forHtml="createCategory">
+                          Nombre de la nueva categoría
+                        </Label>
+                        <Input
+                          value={newCategoryName}
+                          onChange={(e) => setNewCategoryName(e.target.value)}
+                          id={'createCategory'}
+                          name={'createCategory'}
+                          placeholder={''}
+                        />
+                      </div>
+                      <div className="text-md">
+                        <Label>Categoría padre</Label>
+                        <Select
+                          onValueChange={(value) => {
+                            setParentCategory(value);
+                            if (value === 'none') {
+                              setShowParentCategory(null);
+                            } else {
+                              const selectedCategory = findCategoryById(
+                                value,
+                                categories
+                              );
+                              console.log(selectedCategory);
+                              setShowParentCategory(selectedCategory);
+                            }
+                          }}
+                          defaultValue="none"
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Seleccione la categoría padre">
+                              {showParentCategory
+                                ? showParentCategory.name
+                                : 'Seleccione la categoría padre'}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Ninguna</SelectItem>
+                            {categories.map((category) => (
+                              <SelectItem key={category.id} value={category.id}>
+                                {category.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className={'mt-2'}>
+                        <Button
+                          onClick={handleAddCategory}
+                          type={'button'}
+                          variant={'secondary'}
+                          className={'w-full'}
+                        >
+                          Agregar categoría
+                        </Button>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div className="bg-white rounded-md shadow">
+              <div className="flex flex-col gap-2 p-3">
+                <h3>Imagen principal</h3>
+
+                <FileUploader
+                  value={files}
+                  onValueChange={setFiles}
+                  dropzoneOptions={dropzone}
+                  className="flex flex-col gap-2"
+                >
+                  <div>
+                    {hasFiles ? (
+                      <>
+                        <img
+                          onClick={() => handleImageClick(files[0])}
+                          className="w-full object-cover aspect-square rounded-lg cursor-pointer"
+                          src={URL?.createObjectURL(files[0])}
+                          alt=""
+                        />
+                      </>
+                    ) : (
+                      <FileInput className="w-full aspect-square flex items-center justify-center text-center border-2 rounded-lg border-dashed border-accent/50">
+                        <div className="flex items-center justify-center text-center flex-col">
+                          <svg
+                            className="w-8 h-8 mb-3 text-accent/70 dark:text-accent/70"
+                            aria-hidden="true"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 20 16"
+                          >
+                            <path
+                              stroke="currentColor"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
+                            ></path>
+                          </svg>
+                          <p className="mb-1 text-sm text-accent/70 dark:text-accent/70">
+                            <span className="font-semibold">
+                              Click to upload
+                            </span>
+                            &nbsp; or drag and drop
+                          </p>
+                          <p className="text-xs text-accent/70 dark:text-accent/70">
+                            SVG, PNG, JPG or GIF
+                          </p>
+                        </div>
+                      </FileInput>
+                    )}
+                  </div>
+                  <FileUploaderContent>
+                    {files &&
+                      files.map((item: any, index: any) => (
+                        <FileUploaderItem
+                          className="group"
+                          key={index}
+                          index={index}
+                        >
+                          <span className="truncate max-w-52">{item.name}</span>
+                        </FileUploaderItem>
+                      ))}
+                  </FileUploaderContent>
+                </FileUploader>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-md shadow">
+              <div className="flex flex-col gap-2 p-3">
+                <h3>Galeria de imagenes</h3>
+
+                <Sheet>
+                  <SheetTrigger
+                    className={`${buttonVariants({ variant: 'outline' })}`}
+                  >
+                    Abrir galeria
+                  </SheetTrigger>
+                  <SheetContent className="bg-white !max-w-2xl h-full overflow-auto">
+                    <SheetHeader>
+                      <SheetTitle>Galeria</SheetTitle>
+                      <SheetDescription className="">
+                        <FileUploader
+                          value={filesGallery}
+                          onValueChange={setFilesGallery}
+                          dropzoneOptions={dropzoneGallery}
+                          className="flex flex-col gap-2"
+                        >
+                          <div>
+                            <FileInput className="w-full aspect-[4/1.5] flex items-center justify-center text-center border-2 rounded-lg border-dashed border-accent/50">
+                              <div className="flex items-center justify-center text-center flex-col">
+                                <svg
+                                  className="w-8 h-8 mb-3 text-accent/70 dark:text-accent/70"
+                                  aria-hidden="true"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  fill="none"
+                                  viewBox="0 0 20 16"
+                                >
+                                  <path
+                                    stroke="currentColor"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                    d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
+                                  ></path>
+                                </svg>
+                                <p className="mb-1 text-xs text-accent/70 dark:text-accent/70">
+                                  <span className="font-semibold">
+                                    Click to upload
+                                  </span>
+                                  &nbsp; or drag and drop{' '}
+                                  <span className="text-xs text-accent/70 dark:text-accent/70">
+                                    SVG, PNG, JPG or GIF
+                                  </span>
+                                </p>
+                              </div>
+                            </FileInput>
+                          </div>
+                        </FileUploader>
+
+                        <SheetTitle className="text-black mt-3">
+                          Lista de galeria
+                        </SheetTitle>
+
+                        <ReactSortable
+                          className="grid grid-cols-3 gap-3 mt-3"
+                          //@ts-ignore
+                          list={filesGallery}
+                          //@ts-ignore
+                          setList={setFilesGallery}
+                          handle=".draggable"
+                        >
+                          {filesGallery &&
+                            filesGallery.map((item: any, index: any) => (
+                              <img
+                                /*  onClick={() => handleImageClick(item)} */
+                                className="w-full object-cover aspect-square rounded-lg cursor-pointer draggable"
+                                src={URL?.createObjectURL(item)}
+                                alt=""
+                              />
+                            ))}
+                        </ReactSortable>
+                      </SheetDescription>
+                    </SheetHeader>
+                  </SheetContent>
+                </Sheet>
               </div>
             </div>
           </div>
