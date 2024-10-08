@@ -19,6 +19,7 @@ interface WordpressContextProps {
   fetchTags: () => any; // Tag[]
   addCategory: (sett: any) => any; // Tag[]
   fetchPostsCountByStatus: () => any;
+  addTag: (sett: any) => any; // Tag[]
 }
 
 const WordpressContext = createContext<WordpressContextProps | undefined>(undefined);
@@ -87,6 +88,14 @@ const WordpressProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     return response.data;
   };
 
+  const addTag = async (data: any) => {
+    console.log('calling');
+    const response = await axios.post(`${ServerUrl}/wordpress/tags?userId=${completeUser._id}`,
+      data);
+    console.log('category', response.data);
+    return response.data;
+  };
+
   const addTagsMultiple = async (data) => {
     console.log({ addTagsMultiple: data });
     const response = await axios.post(`${ServerUrl}/wordpress/tags/multiple?userId=${completeUser._id}`,
@@ -116,7 +125,8 @@ const WordpressProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         fetchCategories,
         fetchTags,
         addCategory,
-        fetchPostsCountByStatus
+        addTag,
+        fetchPostsCountByStatus,
       }}
     >
       {children}

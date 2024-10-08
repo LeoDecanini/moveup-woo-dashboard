@@ -29,67 +29,121 @@ const BlogPage = () => {
   const router = useRouter();
 
   const [postsByStatus, setPostsByStatus] = useState({
-    publish: [],
-    future: [],
-    private: [],
-    draft: [],
-    trash: [],
+    'publish': [],
+    'future': [],
+    /* 'private': [], */
+    'draft': [],
+    'trash': [],
+    'pending': [],
+    /* 'auto-draft': [],
+    'inherit': [],
+    'request-pending': [],
+    'request-confirmed': [],
+    'request-failed': [],
+    'request-completed': [], */
   });
 
   const [isLoading, setIsLoading] = useState(false);
 
   /*fetchPostCountByStatus*/
   const [postsCountByStatus, setPostsCountByStatus] = useState({
-    publish: 0,
-    draft: 0,
-    pending: 0,
-    future: 0,
-    private: 0,
-    trash: 0,
-    'auto-draft': 0,
-    inherit: 0,
+    'publish': 0,
+    'draft': 0,
+    'pending': 0,
+    'future': 0,
+   /*  'private': 0, */
+    'trash': 0,
+    /* 'auto-draft': 0,
+    'inherit': 0,
     'request-pending': 0,
     'request-confirmed': 0,
     'request-failed': 0,
-    'request-completed': 0,
+    'request-completed': 0, */
   });
 
   const statusFromUrl = searchParams.get('status') || 'publish';
 
   const [selectedStatus, setSelectedStatus] = useState(statusFromUrl);
 
-  const postStatus = [
+  let postStatus = [
     {
       name: 'Publicado',
       slug: 'publish',
       light: { color: '#012609', bg: '#deffe5' },
       dark: { color: '#deffe5', bg: '#012609' },
+      opened: true,
     },
     {
       name: 'Programados',
       slug: 'future',
       light: { color: '#055b69', bg: '#e0f7fa' },
       dark: { color: '#e0f7fa', bg: '#055b69' },
+      opened: true,
     },
-    {
+    /* {
       name: 'Privados',
       slug: 'private',
       light: { color: '#2a2d30', bg: '#d8e2ed' },
       dark: { color: '#d8e2ed', bg: '#2a2d30' },
+    }, */
+    {
+      name: 'Pendiente',
+      slug: 'pending',
+      light: { color: '#856404', bg: '#fff3cd' },
+      dark: { color: '#fff3cd', bg: '#856404' },
     },
     {
       name: 'Borrador',
       slug: 'draft',
       light: { color: '#3d2f03', bg: '#ffecb5' },
       dark: { color: '#ffecb5', bg: '#3d2f03' },
+      opened: true,
     },
     {
       name: 'Papelera',
       slug: 'trash',
       light: { color: '#dc3545', bg: '#f8d7da' },
       dark: { color: '#dc3545', bg: '#f8d7da' },
+      opened: true,
     },
+    /* {
+      name: 'Borrador Automático',
+      slug: 'auto-draft',
+      light: { color: '#004085', bg: '#cce5ff' },
+      dark: { color: '#cce5ff', bg: '#004085' },
+    },
+    {
+      name: 'Heredado',
+      slug: 'inherit',
+      light: { color: '#383d41', bg: '#e2e3e5' },
+      dark: { color: '#e2e3e5', bg: '#383d41' },
+    },
+    {
+      name: 'Solicitud Pendiente',
+      slug: 'request-pending',
+      light: { color: '#856404', bg: '#fff3cd' },
+      dark: { color: '#fff3cd', bg: '#856404' },
+    },
+    {
+      name: 'Solicitud Confirmada',
+      slug: 'request-confirmed',
+      light: { color: '#155724', bg: '#d4edda' },
+      dark: { color: '#d4edda', bg: '#155724' },
+    },
+    {
+      name: 'Solicitud Fallida',
+      slug: 'request-failed',
+      light: { color: '#721c24', bg: '#f8d7da' },
+      dark: { color: '#f8d7da', bg: '#721c24' },
+    },
+    {
+      name: 'Solicitud Completada',
+      slug: 'request-completed',
+      light: { color: '#155724', bg: '#d4edda' },
+      dark: { color: '#d4edda', bg: '#155724' },
+    }, */
   ];
+
 
   const getPostStatusBySlug = (slug) => {
     const status = postStatus.find((status) => status.slug === slug);
@@ -145,10 +199,9 @@ const BlogPage = () => {
         defaultValue={selectedStatus}
         onValueChange={(value) => setSelectedStatus(value)}
       >
-        <div className='w-full flex justify-between items-center'>
-
-          <TabsList className='mb-4'>
-            {postStatus.map((status) => (
+        <div className='w-full flex justify-between items-center gap-x-8 mb-4'>
+          <TabsList className='py-0 overflow-x-scroll custom-scroll'>
+            {postStatus.map((status: any) => (
               <TabsTrigger key={status.slug} value={status.slug}>
                 {status.name}
                 <Badge
@@ -161,10 +214,12 @@ const BlogPage = () => {
               </TabsTrigger>
             ))}
           </TabsList>
-          <Button disabled={isLoading} onClick={loadPosts} variant='outline'>
-            {isLoading && <FiRefreshCw className={'animate-spin mr-1.5'} />}
-            Actualizar
-          </Button>
+          <div className={'min-w-[120.43px] flex items-end justify-end'}>
+            <Button disabled={isLoading} onClick={loadPosts} variant='outline'>
+              {isLoading && <FiRefreshCw className={'animate-spin mr-1.5'} />}
+              Actualizar
+            </Button>
+          </div>
         </div>
 
         {postStatus.map((status) => (
@@ -180,7 +235,7 @@ const BlogPage = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {isLoading && postsByStatus[selectedStatus].length === 0 ? (
+                {isLoading && postsByStatus[selectedStatus] && postsByStatus[selectedStatus].length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={4} className='text-center'>
                       <div className='min-h-48 grid place-items-center'><MoveUpLoader /></div>

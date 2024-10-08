@@ -94,10 +94,12 @@ const CreateForm: React.FC<Props> = () => {
     const [parentCategory, setParentCategory] = useState<number | string>('none');
     const [showParentCategory, setShowParentCategory] = useState<any>('none');
 
-    const { fetchCategories, fetchTags, addCategory } = useWordpress();
+    const { fetchCategories, fetchTags, addCategory, addTag  } = useWordpress();
     const [newCategory, setNewCategory] = useState<boolean>(false);
     const [newCategoryName, setNewCategoryName] = useState<string>('');
     const [newTagsName, setNewTagsName] = useState<any[]>([]);
+    const [newTag, setNewTag] = useState<boolean>(false);
+    const [newTagName, setNewTagName] = useState<any[]>([]);
     const [selectedCategories, setSelectedCategories] = useState<any[]>([]);
     const [selectedTags, setSelectedTags] = useState<any[]>([]);
 
@@ -322,30 +324,51 @@ const CreateForm: React.FC<Props> = () => {
       return !noValid;
     };
 
+    const extractTagIds = (selectedTags) => {
+      return selectedTags.map(tag => tag.id);
+    };
+    
     const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
       e.preventDefault();
       setLoadingForm(true);
-
+    
+      // Validación de los datos del formulario
       const validateData = validateForm();
-
-      if (!validateData) return;
-
+    
+      // Si la validación falla, detenemos la carga y salimos de la función
+      if (!validateData) {
+        setLoadingForm(false);
+        return;
+      }
+    
+      // Asignar status y preparar las categorías y etiquetas con sus IDs
       formData.status = 'publish';
-
+      formData.categories = extractTagIds(selectedCategories);
+      formData.tags = extractTagIds(selectedTags);
+    
       console.log({ formData });
+    
       try {
+        // Realizar la solicitud al backend para crear el post
         const response = await axios.post(`${ServerUrl}/wordpress/posts`, {
           userId: '66fcceab3f69e67d4843014a',
           post: formData,
-        }, {});
+        }, {
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+    
         console.log(response.data);
       } catch (error) {
-        console.log(error);
+        // Capturar errores y mostrarlos en consola
+        console.error('Error al crear el post:', error);
       } finally {
+        // Detener la carga sin importar el resultado de la solicitud
+        setLoadingForm(false);
       }
-      setLoadingForm(false);
-
     };
+    
 
     const handleSearchChange = (e: any) => {
       const value = e.target.value;
@@ -397,7 +420,29 @@ const CreateForm: React.FC<Props> = () => {
       });
     };
 
+    const handleAddTag = async () => {
+      const data = { name: newTagName };
+
+      addTag(data).then(async (response) => {
+        console.log(response);
+        await fetchTags().then((data) => {
+          setTags(data);
+        });
+
+        setSelectedTags((prevSelectedTags) => [
+          ...prevSelectedTags,
+          response,
+        ]);
+
+        setNewTag(false);
+        setNewTagName('');
+      });
+    };
+    
+    
+
     console.log({ selectedCategories });
+    console.log({ selectedTags });
 
     return (
       <>
@@ -603,7 +648,7 @@ const CreateForm: React.FC<Props> = () => {
                   setParentCategory('none');
                   setShowParentCategory(null);
                 }} variant={'outline'} className={''}
-                        type={'button'}>{newCategory ? 'Cancelar' : 'Añadir nueva'}</Button>
+                        type={'button'}>{newCategory ? 'Cancelar' : 'Agregar nueva'}</Button>
                 {
                   newCategory &&
                   <>
@@ -644,7 +689,7 @@ const CreateForm: React.FC<Props> = () => {
                         </Select>
                       </div>
                       <div className={'mt-2'}>
-                        <Button onClick={handleAddCategory} type={'button'} variant={'secondary'} className={'w-full'}>Añadir
+                        <Button onClick={handleAddCategory} type={'button'} variant={'secondary'} className={'w-full'}>Agregar
                           categoría</Button>
                       </div>
                     </div>
@@ -661,12 +706,12 @@ const CreateForm: React.FC<Props> = () => {
                     tags && tags.length > 0 && tags?.map((tag) => (
                       <div key={tag.id} className={'flex items-center gap-1.5'}>
                         <Checkbox
-                          checked={selectedCategories.some((selectedCategory) => selectedCategory.id === tag.id)}
+                          checked={selectedTags.some((selectedTag) => selectedTag.id === tag.id)}
                           onCheckedChange={(checked) => {
                             if (checked) {
-                              setSelectedCategories((prevSelectedCategories) => [...prevSelectedCategories, tag]);
+                              setSelectedTags((prevSelectedTags) => [...prevSelectedTags, tag]);
                             } else {
-                              setSelectedCategories((prevSelectedCategories) => prevSelectedCategories.filter((selectedCategory) => selectedCategory.id !== tag.id));
+                              setSelectedTags((prevSelectedTags) => prevSelectedTags.filter((selectedTag) => selectedTag.id !== tag.id));
                             }
                           }}
                           id={tag.id}
@@ -681,54 +726,21 @@ const CreateForm: React.FC<Props> = () => {
                   }
                 </div>
                 <Button onClick={() => {
-                  setNewCategory(!newCategory);
-                  setNewCategoryName('');
-                  setParentCategory('none');
-                  setShowParentCategory(null);
+                  setNewTag(!newTag);
+                  setNewTagName('');
                 }} variant={'outline'} className={''}
-                        type={'button'}>{newCategory ? 'Cancelar' : 'Añadir nueva'}</Button>
+                        type={'button'}>{newTag ? 'Cancelar' : 'Agregar nueva'}</Button>
                 {
-                  newCategory &&
+                  newTag &&
                   <>
                     <div className='p-2 bg-gray-50 rounded'>
                       <div className={'text-md'}>
-                        <Label forHtml={'createCategory'}>Nombre de la nueva categoría</Label>
-                        <Input value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)}
-                               id={'createCategory'} name={'createCategory'} placeholder={''} />
-                      </div>
-                      <div className={'text-md'}>
-                        <Label>Categoría padre</Label>
-                        <Select
-                          onValueChange={(value) => {
-                            setParentCategory(value);
-                            if (value === 'none') {
-                              setShowParentCategory(null);
-                            } else {
-                              const selectedCategory = findCategoryById(value, categories);
-                              console.log(selectedCategory);
-                              setShowParentCategory(selectedCategory);
-                            }
-                          }}
-                          defaultValue='none'
-                        >
-                          <SelectTrigger className='w-full'>
-                            <SelectValue placeholder='Seleccione la categoría padre'>
-                              {showParentCategory ? showParentCategory.name : 'Seleccione la categoría padre'}
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value='none'>Ninguna</SelectItem>
-                            {categories.map((category) => (
-                              <SelectItem key={category.id} value={category.id}>
-                                {category.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <Label forHtml={'newTag'}>Nombre de la nueva categoría</Label>
+                        <Input value={newTagName} onChange={(e) => setNewTagName(e.target.value)}
+                               id={'newTag'} name={'newTag'} placeholder={''} />
                       </div>
                       <div className={'mt-2'}>
-                        <Button onClick={handleAddCategory} type={'button'} variant={'secondary'} className={'w-full'}>Añadir
-                          categoría</Button>
+                        <Button onClick={handleAddTag} type={'button'} variant={'secondary'} className={'w-zfull'}>Agregar etiqueta</Button>
                       </div>
                     </div>
                   </>
