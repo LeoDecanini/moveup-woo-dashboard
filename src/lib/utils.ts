@@ -9,7 +9,7 @@ export function cn(...inputs: ClassValue[]) {
 
 const directionServer = false;
 
-const directionHome = true;
+const directionHome = false;
 
 export const ServerUrl = directionServer
   ? 'http://localhost:3000'
