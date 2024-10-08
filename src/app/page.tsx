@@ -38,7 +38,7 @@ export default function IndexPage() {
       </div>
 
       <div className="max-w-[1336px] rounded-lg border bg-background shadow">
-        <PlateEditor />
+       {/* <PlateEditor />*/}
       </div>
     </section>
   );

@@ -10,6 +10,7 @@ import { ThemeProvider } from '@/components/site/theme-provider';
 import '@/styles/globals.css';
 
 import { Metadata, Viewport } from 'next';
+
 import { Providers } from './providers';
 
 export const metadata: Metadata = {

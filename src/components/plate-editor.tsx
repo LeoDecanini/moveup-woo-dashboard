@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useRef } from 'react';
+import { payloadSlateToHtmlConfig, slateToHtml } from '@slate-serializers/html';
 import { cn, withProps } from '@udecode/cn';
 import { AlignPlugin } from '@udecode/plate-alignment/react';
 import { AutoformatPlugin } from '@udecode/plate-autoformat/react';
@@ -80,6 +81,7 @@ import {
 import { TrailingBlockPlugin } from '@udecode/plate-trailing-block';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import Html from 'slate-html-serializer';
 
 import { autoformatRules } from '@/lib/plate/autoformat-rules';
 import { BlockquoteElement } from '@/components/plate-ui/blockquote-element';
@@ -124,12 +126,7 @@ import { TableRowElement } from '@/components/plate-ui/table-row-element';
 import { TodoListElement } from '@/components/plate-ui/todo-list-element';
 import { withDraggables } from '@/components/plate-ui/with-draggables';
 
-
-import { slateToHtml, payloadSlateToHtmlConfig } from '@slate-serializers/html';
-
-import Html from 'slate-html-serializer';
-
-const serialize = node => {
+/*const serialize = (node) => {
   if (Text.isText(node)) {
     let string = escapeHtml(node.text);
     if (node.bold) {
@@ -138,7 +135,7 @@ const serialize = node => {
     return string;
   }
 
-  const children = node.children.map(n => serialize(n)).join('');
+  const children = node.children.map((n) => serialize(n)).join('');
 
   switch (node.type) {
     case 'quote':
@@ -150,28 +147,28 @@ const serialize = node => {
     default:
       return children;
   }
-};
+};*/
 
 export default function PlateEditor() {
   const containerRef = useRef(null);
 
   const editor = useMyEditor();
 
+  /* const saveHtml = () => {
+     console.log(editor.children);
+     console.log('');
+     const serializedToHtml = slateToHtml(editor.children, payloadSlateToHtmlConfig);
+     console.log(serializedToHtml);
+     console.log('');
 
-  const saveHtml = () => {
-    console.log(editor.children);
-    console.log('');
-    const serializedToHtml = slateToHtml(editor.children, payloadSlateToHtmlConfig);
-    console.log(serializedToHtml);
-    console.log('');
+     const html = Html.serialize(editor.children);
 
-    const html = Html.serialize(editor.children);
-
-    console.log(serialize(editor.children[0]));
-  };
+     console.log(serialize(editor.children[0]));
+   };*/
 
   const serializeHtmlCallback = useCallback((nodes: TElement[]) => {
-    const editor = createPlateEditor({ plugins: [
+    const editor = createPlateEditor({
+      plugins: [
         HtmlReactPlugin,
         // Nodes
         HeadingPlugin,
@@ -359,10 +356,10 @@ export default function PlateEditor() {
                   return !!(
                     n.type &&
                     ([
-                        TablePlugin.key,
-                        TodoListPlugin.key,
-                        CodeBlockPlugin.key,
-                      ].includes(n.type as string) ||
+                      TablePlugin.key,
+                      TodoListPlugin.key,
+                      CodeBlockPlugin.key,
+                    ].includes(n.type as string) ||
                       n.listStyleType)
                   );
                 },
@@ -394,7 +391,8 @@ export default function PlateEditor() {
         DocxPlugin,
         MarkdownPlugin,
         JuicePlugin,
-      ] });
+      ],
+    });
 
     const html = serializeHtml(editor, {
       nodes,
@@ -404,19 +402,19 @@ export default function PlateEditor() {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <Plate editor={editor}
-
-             onChange={(newValue) => {
-               console.log('newValue', newValue);
-               const html = serializeHtmlCallback(newValue.value);
-             }}
+      <Plate
+        editor={editor}
+        onChange={(newValue) => {
+          console.log('newValue', newValue);
+          const html = serializeHtmlCallback(newValue.value);
+        }}
       >
         <div
           ref={containerRef}
           className={cn(
             'relative',
             // Block selection
-            '[&_.slate-start-area-left]:!w-[64px] [&_.slate-start-area-right]:!w-[64px] [&_.slate-start-area-top]:!h-4',
+            '[&_.slate-start-area-left]:!w-[64px] [&_.slate-start-area-right]:!w-[64px] [&_.slate-start-area-top]:!h-4'
           )}
         >
           <FixedToolbar>
@@ -424,11 +422,11 @@ export default function PlateEditor() {
           </FixedToolbar>
 
           <Editor
-            className='px-[96px] py-16'
+            className="px-[96px] py-16"
             autoFocus
             focusRing={false}
-            variant='ghost'
-            size='md'
+            variant="ghost"
+            size="md"
           />
 
           <FloatingToolbar>
@@ -440,7 +438,9 @@ export default function PlateEditor() {
           <CursorOverlay containerRef={containerRef} />
         </div>
       </Plate>
-      <button type={'button'} onClick={saveHtml}>Save HTML</button>
+      {/*<button type={'button'} onClick={saveHtml}>
+        Save HTML
+      </button>*/}
     </DndProvider>
   );
 }
@@ -635,10 +635,10 @@ export const useMyEditor = () => {
                 return !!(
                   n.type &&
                   ([
-                      TablePlugin.key,
-                      TodoListPlugin.key,
-                      CodeBlockPlugin.key,
-                    ].includes(n.type as string) ||
+                    TablePlugin.key,
+                    TodoListPlugin.key,
+                    CodeBlockPlugin.key,
+                  ].includes(n.type as string) ||
                     n.listStyleType)
                 );
               },
@@ -707,7 +707,7 @@ export const useMyEditor = () => {
           [SuperscriptPlugin.key]: withProps(PlateLeaf, { as: 'sup' }),
           [UnderlinePlugin.key]: withProps(PlateLeaf, { as: 'u' }),
           [CommentsPlugin.key]: CommentLeaf,
-        }),
+        })
       ),
     },
     value: [
