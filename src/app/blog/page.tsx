@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useWordpress } from '@/context/wordpress-context';
 import { useAuth } from '@/context/platform-user-context';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -15,10 +16,20 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+
+import { FaLock, FaPencil, FaRegTrashCan } from "react-icons/fa6";
+import { FaExternalLinkAlt } from "react-icons/fa";
+
 import { Badge } from '@/components/ui/badge';
 
 import MoveUpLoader from '@/components/shared/moveup-loader';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 
 import { FiRefreshCw } from 'react-icons/fi';
 
@@ -27,6 +38,8 @@ const BlogPage = () => {
   const { completeUser } = useAuth();
   const searchParams = useSearchParams();
   const router = useRouter();
+
+  const acceptedStatuses = ['publish', 'future', 'draft', 'trash', 'pending']
 
   const [postsByStatus, setPostsByStatus] = useState({
     'publish': [],
@@ -61,7 +74,13 @@ const BlogPage = () => {
     'request-completed': 0, */
   });
 
-  const statusFromUrl = searchParams.get('status') || 'publish';
+  const statusFromUrl = (() => {
+    const status = searchParams.get('status');
+    if (!status || !acceptedStatuses.includes(status)) {
+      return 'publish';
+    }
+    return status;
+  })();
 
   const [selectedStatus, setSelectedStatus] = useState(statusFromUrl);
 
@@ -200,14 +219,18 @@ const BlogPage = () => {
         onValueChange={(value) => setSelectedStatus(value)}
       >
         <div className='w-full flex justify-between items-center gap-x-8 mb-4'>
-          <TabsList className='py-0 overflow-x-scroll custom-scroll'>
+          <TabsList className='py-0 h-8'>
             {postStatus.map((status: any) => (
               <TabsTrigger key={status.slug} value={status.slug}>
                 {status.name}
                 <Badge
-                  className={`ml-2 px-1.5`}
-
-                  variant='outline'
+                className="px-1.5 ml-1"
+                style={selectedStatus === status.slug ? {
+                  backgroundColor: getPostStatusBySlug(status.slug)?.light.bg,
+                  color: getPostStatusBySlug(status.slug)?.light.color,
+                  } : undefined
+                }
+                variant={selectedStatus === status.slug ? 'default' : 'outline'}
                 >
                   {postsCountByStatus[status.slug]}
                 </Badge>
@@ -231,7 +254,7 @@ const BlogPage = () => {
                   <TableHead>Título</TableHead>
                   <TableHead className='w-32'>Estado</TableHead>
                   <TableHead className='w-32'>Fecha</TableHead>
-                  <TableHead className='w-32'></TableHead>
+                  <TableHead className='w-24'></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -244,8 +267,11 @@ const BlogPage = () => {
                 ) : (
                   postsByStatus && postsByStatus[selectedStatus] && postsByStatus[selectedStatus].length > 0 && postsByStatus[selectedStatus].map((post, index) => (
                     <TableRow key={index}>
-                      <TableCell className='font-medium'>{post.title.rendered ||
-                        <em className={'opacity-70'}>Sin título</em>}</TableCell>
+                      <TableCell className='font-medium flex items-center justify-start gap-1'>
+                        {post.content.protected && <FaLock className="text-primary text-xs"/> }
+                        {post.title.rendered ||
+                        <em className={'opacity-70'}>Sin título</em>}
+                        </TableCell>
                       <TableCell>
                         <Badge
                           className={``}
@@ -259,7 +285,45 @@ const BlogPage = () => {
                         </Badge>
                       </TableCell>
                       <TableCell>{new Date(post.date).toLocaleDateString()}</TableCell>
-                      <TableCell>bot1 bpt2</TableCell>
+                      <TableCell className="flex items-center justify-center gap-2">
+                          {
+                            post.link &&
+                            <Link className={`text-primary`} href={post.link} target="_blank">
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger><FaExternalLinkAlt /></TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Ver en la web</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </Link>
+                          }
+         {
+                            post.link &&
+                            <Link className={`text-orange-400`} href={`/blog/edit/${post.id}`}>
+                                                            <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger><FaPencil /></TooltipTrigger>
+                                  <TooltipContent className="bg-orange-400">
+                                    <p>Editar</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </Link>
+                          }
+                                   {
+                            post.link &&
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger><FaRegTrashCan className="text-destructive" /></TooltipTrigger>
+                                  <TooltipContent className="bg-destructive">
+                                    <p>Mover a la papelera</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                          }
+                      </TableCell>
                     </TableRow>
                   ))
                 )}

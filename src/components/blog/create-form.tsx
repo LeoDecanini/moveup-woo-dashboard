@@ -327,21 +327,18 @@ const CreateForm: React.FC<Props> = () => {
     const extractTagIds = (selectedTags) => {
       return selectedTags.map(tag => tag.id);
     };
-    
+
     const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
       e.preventDefault();
       setLoadingForm(true);
     
-      // Validación de los datos del formulario
       const validateData = validateForm();
     
-      // Si la validación falla, detenemos la carga y salimos de la función
       if (!validateData) {
         setLoadingForm(false);
         return;
       }
     
-      // Asignar status y preparar las categorías y etiquetas con sus IDs
       formData.status = 'publish';
       formData.categories = extractTagIds(selectedCategories);
       formData.tags = extractTagIds(selectedTags);
@@ -349,7 +346,6 @@ const CreateForm: React.FC<Props> = () => {
       console.log({ formData });
     
       try {
-        // Realizar la solicitud al backend para crear el post
         const response = await axios.post(`${ServerUrl}/wordpress/posts`, {
           userId: '66fcceab3f69e67d4843014a',
           post: formData,
