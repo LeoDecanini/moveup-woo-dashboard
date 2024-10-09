@@ -132,7 +132,7 @@ const CreateForm: React.FC<Props> = () => {
 
   const [loadingForm, setLoadingForm] = useState<boolean>(false);
 
-  const [productType, setProductType] = useState('simple');
+  const [productType, setProductType] = useState('variable');
   const [existingAttribute, setExistingAttribute] = useState('');
   const [attributes, setAttributes] = useState<any>([]);
   const [variations, setVariations] = useState<any>(null);
@@ -827,6 +827,64 @@ const CreateForm: React.FC<Props> = () => {
   };
   const [newAttribute, setNewAttribute] = useState<any>(false);
 
+  useEffect(() => {
+    console.log(variations);
+  }, [variations]);
+
+  const generateVariations = (attributes: any) => {
+    console.log('Atributos iniciales:', attributes);
+
+    setVariations(null);
+
+    // Filtrar atributos que tengan "variation" en true y opciones disponibles
+    const attributeValues = attributes
+      .filter(
+        (attribute: any) => attribute.variation && attribute.options.length > 0
+      )
+      .map((attribute: any) => ({
+        name: attribute.name,
+        values: attribute.options,
+      }));
+
+    console.log('Atributos filtrados:', attributeValues);
+
+    if (attributeValues.length === 0) {
+      console.log(
+        'No hay atributos con variation activado y opciones disponibles'
+      );
+      return;
+    }
+
+    // Función para combinar todas las opciones de los atributos
+    const combine = (arrays: any): any[] => {
+      if (arrays.length === 0) return [[]];
+
+      const first = arrays[0];
+      const rest = arrays.slice(1);
+
+      const combinationsWithoutFirst = combine(rest);
+      const combinationsWithFirst = first.values.flatMap((value: any) =>
+        combinationsWithoutFirst.map((combo: any) => [
+          { name: first.name, value },
+          ...combo,
+        ])
+      );
+
+      return combinationsWithFirst;
+    };
+
+    // Generar todas las combinaciones de los atributos
+    const allVariations = combine(attributeValues).map((variation: any) => ({
+      id: Date.now(), // ID único para cada variación
+      attributes: variation,
+    }));
+
+    console.log('Variaciones generadas:', allVariations);
+
+    // Actualizar el estado con las variaciones generadas
+    setVariations(allVariations);
+  };
+
   return (
     <>
       {loadingForm && (
@@ -916,14 +974,9 @@ const CreateForm: React.FC<Props> = () => {
                                       setNewAttribute({
                                         id: Date.now(),
                                         name: '',
-                                        options: [
-                                          {
-                                            id: Date.now(),
-                                            name: 'Valor 1',
-                                            value: '',
-                                          },
-                                        ],
+                                        options: [''],
                                         visible: false,
+                                        variation: true,
                                         save: false,
                                       });
                                     }}
@@ -949,7 +1002,11 @@ const CreateForm: React.FC<Props> = () => {
                                   </Select>
                                 </div>
 
-                                <Accordion type="single" collapsible>
+                                <Accordion
+                                  className="mb-2"
+                                  type="single"
+                                  collapsible
+                                >
                                   {attributes &&
                                     attributes.length > 0 &&
                                     attributes.map(
@@ -963,8 +1020,7 @@ const CreateForm: React.FC<Props> = () => {
                                           </AccordionTrigger>
                                           <AccordionContent>
                                             <div className="relative p-2 border rounded-md">
-                                              {/* Formulario de edición */}
-                                              <div className="flex items-center gap-2 pb-3">
+                                              <div className="absolute right-2 flex items-center gap-2">
                                                 <Button
                                                   variant="outline"
                                                   onClick={() => {
@@ -981,12 +1037,7 @@ const CreateForm: React.FC<Props> = () => {
                                                               ...attr,
                                                               options: [
                                                                 ...attr.options,
-                                                                {
-                                                                  id: Date.now(),
-                                                                  name: `Valor ${attr.options.length + 1}`,
-                                                                  value: '',
-                                                                  save: false,
-                                                                },
+                                                                '',
                                                               ],
                                                             };
                                                           }
@@ -1066,15 +1117,14 @@ const CreateForm: React.FC<Props> = () => {
                                                 <div className="w-full grid grid-cols-5 gap-2">
                                                   {attribute?.options.map(
                                                     (
-                                                      option: any,
+                                                      option: string,
                                                       optIndex: number
                                                     ) => (
                                                       <div
-                                                        key={option.id}
+                                                        key={optIndex}
                                                         className="relative"
                                                       >
                                                         <Input
-                                                          id={option.name}
                                                           type="text"
                                                           onChange={(event) => {
                                                             const value =
@@ -1094,20 +1144,13 @@ const CreateForm: React.FC<Props> = () => {
                                                                       const updatedOptions =
                                                                         attr.options.map(
                                                                           (
-                                                                            opt: any,
+                                                                            opt: string,
                                                                             i: number
-                                                                          ) => {
-                                                                            if (
-                                                                              i ===
-                                                                              optIndex
-                                                                            ) {
-                                                                              return {
-                                                                                ...opt,
-                                                                                value,
-                                                                              };
-                                                                            }
-                                                                            return opt;
-                                                                          }
+                                                                          ) =>
+                                                                            i ===
+                                                                            optIndex
+                                                                              ? value
+                                                                              : opt
                                                                         );
                                                                       return {
                                                                         ...attr,
@@ -1120,12 +1163,9 @@ const CreateForm: React.FC<Props> = () => {
                                                                 )
                                                             );
                                                           }}
-                                                          value={option.value}
-                                                          name={option.name}
+                                                          value={option}
                                                           className="max-w-[400px]"
-                                                          placeholder={
-                                                            option.name
-                                                          }
+                                                          placeholder={`Valor ${optIndex + 1}`}
                                                         />
                                                         <IoClose
                                                           className="text-accent absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer"
@@ -1146,10 +1186,11 @@ const CreateForm: React.FC<Props> = () => {
                                                                         options:
                                                                           attr.options.filter(
                                                                             (
-                                                                              o: any
+                                                                              _: string,
+                                                                              i: number
                                                                             ) =>
-                                                                              o.id !==
-                                                                              option.id
+                                                                              i !==
+                                                                              optIndex
                                                                           ),
                                                                       };
                                                                     }
@@ -1198,7 +1239,7 @@ const CreateForm: React.FC<Props> = () => {
                                                   htmlFor={`${attribute?.name}`}
                                                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                                                 >
-                                                  Visible en la pagina de
+                                                  Visible en la página de
                                                   productos
                                                 </label>
                                               </div>
@@ -1207,13 +1248,12 @@ const CreateForm: React.FC<Props> = () => {
                                               <div className="flex justify-end space-x-2 pt-4">
                                                 <Button
                                                   variant="outline"
-                                                  className="text-secondary border-secondary hover:bg-secondary/10"
+                                                  className="bg-transparent hidden sm:block border-accent h-8 py-0 hover:text-accent px-5 text-accent hover:bg-accent/10"
                                                   onClick={() => {
-                                                    // Lógica de eliminar el atributo
                                                     setAttributes((prev: any) =>
                                                       prev.filter(
                                                         (
-                                                          attr: any,
+                                                          _: any,
                                                           index: number
                                                         ) => index !== attrIndex
                                                       )
@@ -1221,20 +1261,6 @@ const CreateForm: React.FC<Props> = () => {
                                                   }}
                                                 >
                                                   Eliminar
-                                                </Button>
-                                                <Button
-                                                  variant="secondary"
-                                                  type='button'
-                                                  className="bg-primary text-white hover:bg-primary/80"
-                                                  onClick={() => {
-                                                    // Por ahora no hace nada
-                                                    console.log(
-                                                      'Guardado el atributo:',
-                                                      attribute
-                                                    );
-                                                  }}
-                                                >
-                                                  Guardar
                                                 </Button>
                                               </div>
                                             </div>
@@ -1252,14 +1278,7 @@ const CreateForm: React.FC<Props> = () => {
                                         onClick={() => {
                                           setNewAttribute((prev: any) => ({
                                             ...prev,
-                                            options: [
-                                              ...prev.options,
-                                              {
-                                                id: Date.now(),
-                                                name: `Valor ${prev.options.length + 1}`,
-                                                value: '',
-                                              },
-                                            ],
+                                            options: [...prev.options, ''],
                                           }));
                                         }}
                                         className="bg-transparent hidden sm:block border-secondary h-8 py-0 hover:text-secondary px-5 text-secondary hover:bg-secondary/10"
@@ -1271,7 +1290,7 @@ const CreateForm: React.FC<Props> = () => {
                                       <Button
                                         variant={'outline'}
                                         onClick={() => {
-                                          setNewAttribute(null); // Cerrar el formulario de nuevo atributo
+                                          setNewAttribute(null);
                                         }}
                                         className="bg-transparent hidden sm:block border-accent h-8 py-0 hover:text-accent px-5 text-accent hover:bg-accent/10"
                                         type="button"
@@ -1303,15 +1322,17 @@ const CreateForm: React.FC<Props> = () => {
                                       <Label>Valores</Label>
                                       <div className="grid grid-cols-5 gap-2">
                                         {newAttribute.options.map(
-                                          (option: any, optIndex: number) => (
+                                          (
+                                            option: string,
+                                            optIndex: number
+                                          ) => (
                                             <div
                                               key={optIndex}
                                               className="relative"
                                             >
                                               <Input
-                                                key={option.id}
                                                 type="text"
-                                                value={option.value}
+                                                value={option}
                                                 onChange={(e) => {
                                                   const value = e.target.value;
                                                   setNewAttribute(
@@ -1319,18 +1340,18 @@ const CreateForm: React.FC<Props> = () => {
                                                       ...prev,
                                                       options: prev.options.map(
                                                         (
-                                                          opt: any,
+                                                          opt: string,
                                                           i: number
                                                         ) =>
                                                           i === optIndex
-                                                            ? { ...opt, value }
+                                                            ? value
                                                             : opt
                                                       ),
                                                     })
                                                   );
                                                 }}
                                                 className="max-w-[400px]"
-                                                placeholder={option.name}
+                                                placeholder={`Valor ${optIndex + 1}`}
                                               />
                                             </div>
                                           )
@@ -1378,15 +1399,39 @@ const CreateForm: React.FC<Props> = () => {
                             ) : tab.value === 'variations' ? (
                               <>
                                 <div className="w-full h-[198px] flex justify-center flex-col text-center">
-                                  {variations?.length === 0 ||
-                                  variations === null ? (
+                                  {attributes?.length === 0 ||
+                                  attributes === null ? (
                                     <p>
                                       Añade algunos atributos en la pestaña
                                       Atributos para generar variaciones.
                                       Asegúrate de marcar la casilla Usado para
                                       variaciones.
                                     </p>
-                                  ) : null}
+                                  ) : (
+                                    <div className="relative h-full">
+                                      <div className="absolute top-0 left-0 flex gap-2 items-center">
+                                        <Button
+                                          variant={'outline'}
+                                          onClick={() =>
+                                            generateVariations(attributes)
+                                          }
+                                          className="bg-transparent hidden sm:block border-secondary h-8 py-0 hover:text-secondary px-5 text-secondary hover:bg-secondary/10"
+                                          type="button"
+                                        >
+                                          Generar variaciones
+                                        </Button>
+
+                                        <Button
+                                          variant={'outline'}
+                                          onClick={() => {}}
+                                          className="bg-transparent hidden sm:block border-accent h-8 py-0 hover:text-accent px-5 text-accent hover:bg-accent/10"
+                                          type="button"
+                                        >
+                                          Agregar manualmente
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
                               </>
                             ) : (
