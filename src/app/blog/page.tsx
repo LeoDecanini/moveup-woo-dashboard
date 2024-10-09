@@ -271,6 +271,7 @@ const BlogPage = () => {
               {/* <TableCaption>Lista de posts en el estado: {status.name}</TableCaption> */}
               <TableHeader>
                 <TableRow>
+                 {/*  <TableHead className='w-32'>Imagen</TableHead> */}
                   <TableHead>Título</TableHead>
                   <TableHead className='w-32'>Estado</TableHead>
                   <TableHead className='w-32'>Fecha</TableHead>
@@ -287,6 +288,14 @@ const BlogPage = () => {
                 ) : (
                   postsByStatus && postsByStatus[selectedStatus] && postsByStatus[selectedStatus].length > 0 && postsByStatus[selectedStatus].map((post, index) => (
                     <TableRow key={index}>
+                       {/* <TableCell className='font-medium flex items-center justify-start gap-1'>
+                        {post['_embedded'] &&
+                            post['_embedded']['wp:featuredmedia'] &&
+                            post['_embedded']['wp:featuredmedia'][0] &&
+                            post['_embedded']['wp:featuredmedia'][0].source_url && (
+                              <img className="h-4" src={post['_embedded']['wp:featuredmedia'][0].source_url} alt={post.title.rendered} />
+                            )}
+                      </TableCell> */}
                       <TableCell className='font-medium flex items-center justify-start gap-1'>
                         {post.content.protected &&
                           <TooltipProvider>
@@ -301,7 +310,6 @@ const BlogPage = () => {
                         }
                         {post.title.rendered ||
                           <em className={'opacity-70'}>Sin título</em>}
-                          
                       </TableCell>
                       <TableCell>
                         <Badge
