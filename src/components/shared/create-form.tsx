@@ -15,6 +15,12 @@ import { IoClose } from 'react-icons/io5';
 import { ReactSortable } from 'react-sortablejs';
 
 import { cn, ServerUrl } from '@/lib/utils';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Input } from '@/components/ui/input';
@@ -239,12 +245,13 @@ const CreateForm: React.FC<Props> = () => {
   const [formData, setFormData] = useState<Record<string, any>>({
     type: productType,
     inventory_management: false,
-    reserves: 'option-no',
+    reserves: 'no',
     name: '',
     description: '',
     short_description: '',
     sku: '',
     code: '',
+    slug: '',
     sold_individually: false,
     stock_quantity: 0,
     low_existens: 0,
@@ -261,6 +268,7 @@ const CreateForm: React.FC<Props> = () => {
     price: '',
     discounted_price: '',
     weight: 0,
+    stock_status: 'instock',
   });
 
   useEffect(() => {
@@ -392,12 +400,12 @@ const CreateForm: React.FC<Props> = () => {
               colSpan: 'col-span-1',
               type: 'radio',
               options: [
-                { label: 'No permitir', value: 'option-no' },
+                { label: 'No permitir', value: 'no' },
                 {
                   label: 'Permitir, pero se avisará al cliente',
-                  value: 'option-allow-warning',
+                  value: 'notify',
                 },
-                { label: 'Permitir', value: 'option-allow' },
+                { label: 'Permitir', value: 'yes' },
               ],
             },
             {
@@ -405,6 +413,20 @@ const CreateForm: React.FC<Props> = () => {
               label: 'Umbral de pocas existencias',
               colSpan: 'col-span-1',
               type: 'number',
+            },
+            {
+              name: 'stock_status',
+              label: 'Estado de inventario',
+              colSpan: 'col-span-1',
+              type: 'radio',
+              options: [
+                { label: 'Hay existencias', value: 'instock' },
+                {
+                  label: 'No hay existencias',
+                  value: 'putofstock',
+                } /* poner backorder en yex */,
+                { label: 'Se puede reservar', value: 'onbackorder' },
+              ],
             },
             {
               name: 'sold_individually',
@@ -564,6 +586,23 @@ const CreateForm: React.FC<Props> = () => {
     });
   }
 
+  if (formData['inventory_management'] === true) {
+    fieldsDataTypeSimple = fieldsDataTypeSimple.map((section: any) => {
+      if (section.title === 'Datos del producto') {
+        return {
+          ...section,
+          tabs: section.tabs.map((tab: any) => ({
+            ...tab,
+            fields: tab.fields.filter(
+              (field: any) => field.name !== 'stock_status'
+            ),
+          })),
+        };
+      }
+      return section;
+    });
+  }
+
   let noValid = false;
 
   const validateField = (name: string, value: string) => {
@@ -653,64 +692,6 @@ const CreateForm: React.FC<Props> = () => {
 
     console.log(formData);
 
-    /* 
-     type: productType,
-    inventory_management: false,
-    reserves: 'option-no',
-    name: '',
-    description: '',
-    short_description: '',
-    sku: '',
-    code: '',
-    sold_individually: false,
-    stock_quantity: 0,
-    low_existens: 0,
-    dimensions: {
-      length: 0,
-      width: 0,
-      height: 0,
-    },
-    program: false,
-    files: [],
-    filesGallery: [],
-    date_on_sale_from: null,
-    date_on_sale_to: null,
-    price: '',
-    discounted_price: '',
-    */
-
-    /* 
-    {
-  "name": "Camiseta Deportiva",
-  "type": "simple",
-  "regular_price": "29.99",
-  "description": "Una camiseta deportiva de alta calidad.",
-  "short_description": "Camiseta deportiva.",
-  "sku": "CAMIS-001",
-  "categories": [
-    { "id": 9 }
-  ],
-  "tags": [
-    { "id": 14 }
-  ],
-  "images": [
-    { "src": "https://example.com/camiseta.jpg" },
-    { "id": 123 }
-  ],
-  "manage_stock": true,
-  "stock_quantity": 50,
-  "in_stock": true,
-  "weight": "0.5",
-  "dimensions": {
-    "length": "20",
-    "width": "15",
-    "height": "3"
-  },
-  "status": "publish",
-  "reviews_allowed": true
-}
-    */
-
     const {
       name,
       price,
@@ -722,10 +703,15 @@ const CreateForm: React.FC<Props> = () => {
       inventory_management,
       stock_quantity,
       weight,
+      slug,
+      reserves,
+      stock_status,
     } = formData;
 
     const data = {
       name: name,
+      ...(slug !== 0 ? { slug } : {}),
+      type: productType,
       status: 'publish',
       regular_price: price,
       sale_price: discounted_price,
@@ -740,6 +726,10 @@ const CreateForm: React.FC<Props> = () => {
         : {}),
       manage_stock: inventory_management,
       stock_quantity: stock_quantity,
+      ...(inventory_management
+        ? { backorders: reserves }
+        : { backorders: 'yes' }),
+      ...(!inventory_management ? { stock_status: stock_status } : {}),
     };
 
     console.log(data);
@@ -772,7 +762,7 @@ const CreateForm: React.FC<Props> = () => {
     attributes.forEach((attr: any) => {
       attr.options.forEach((option: any) => {
         if (attr.save) {
-          console.log('first');
+          console.log(attributes);
         }
       });
     });
@@ -835,6 +825,7 @@ const CreateForm: React.FC<Props> = () => {
     setSelectedImage(null);
     setIsModalOpen(false);
   };
+  const [newAttribute, setNewAttribute] = useState<any>(false);
 
   return (
     <>
@@ -917,27 +908,24 @@ const CreateForm: React.FC<Props> = () => {
                             value={tab.value || ''}
                           >
                             {tab.value === 'attributes' ? (
-                              <div className=" w-full">
+                              <div className="w-full">
                                 <div className="w-full flex items-center gap-2 pb-3">
                                   <Button
                                     variant={'outline'}
                                     onClick={() => {
-                                      setAttributes((prev: any) => [
-                                        ...prev,
-                                        {
-                                          id: Date.now(),
-                                          name: '',
-                                          options: [
-                                            {
-                                              id: Date.now(),
-                                              name: 'Valor 1',
-                                              value: '',
-                                            },
-                                          ],
-                                          visible: false,
-                                          save: false,
-                                        },
-                                      ]);
+                                      setNewAttribute({
+                                        id: Date.now(),
+                                        name: '',
+                                        options: [
+                                          {
+                                            id: Date.now(),
+                                            name: 'Valor 1',
+                                            value: '',
+                                          },
+                                        ],
+                                        visible: false,
+                                        save: false,
+                                      });
                                     }}
                                     className="bg-transparent hidden sm:block border-primary h-8 py-0 hover:text-primary px-5 text-primary hover:bg-primary/10"
                                     type="button"
@@ -961,304 +949,185 @@ const CreateForm: React.FC<Props> = () => {
                                   </Select>
                                 </div>
 
-                                <div className="flex flex-col gap-3">
-                                  {attributes && attributes.length !== 0 && (
-                                    <>
-                                      {attributes.map(
-                                        (attribute: any, attrIndex: number) => (
-                                          <div
-                                            className="relative p-2 border rounded-md"
-                                            key={attribute?.id}
-                                          >
-                                            <div className="absolute right-2 flex items-center gap-2">
-                                              <Button
-                                                variant={'outline'}
-                                                onClick={() => {
-                                                  setAttributes((prev: any) =>
-                                                    prev.map(
-                                                      (
-                                                        attr: any,
-                                                        index: number
-                                                      ) => {
-                                                        if (
-                                                          index === attrIndex
-                                                        ) {
-                                                          return {
-                                                            ...attr,
-                                                            options: [
-                                                              ...attr.options,
-                                                              {
-                                                                id: Date.now(),
-                                                                name: `Valor ${
-                                                                  attr.options
-                                                                    .length + 1
-                                                                }`,
-                                                                value: '',
-                                                                save: false,
-                                                              },
-                                                            ],
-                                                          };
-                                                        }
-                                                        return attr;
-                                                      }
-                                                    )
-                                                  );
-                                                }}
-                                                className="bg-transparent hidden sm:block border-secondary h-8 py-0 hover:text-secondary px-5 text-secondary hover:bg-secondary/10"
-                                                type="button"
-                                              >
-                                                Agregar valor
-                                              </Button>
+                                <Accordion type="single" collapsible>
+                                  <AccordionItem value="item-1">
+                                    <AccordionTrigger>
+                                      Is it accessible?
+                                    </AccordionTrigger>
+                                    <AccordionContent>
+                                      Yes. It adheres to the WAI-ARIA design
+                                      pattern.
+                                    </AccordionContent>
+                                  </AccordionItem>
+                                </Accordion>
 
-                                              <Button
-                                                variant={'outline'}
-                                                onClick={() => {
-                                                  setAttributes((prev: any) =>
-                                                    prev.filter(
-                                                      (_: any, index: number) =>
-                                                        index !== attrIndex
-                                                    )
-                                                  );
-                                                }}
-                                                className="bg-transparent hidden sm:block border-accent h-8 py-0 hover:text-accent px-5 text-accent hover:bg-accent/10"
-                                                type="button"
-                                              >
-                                                Eliminar Atributo
-                                              </Button>
-                                            </div>
+                                <div className="grid gap-3">
+                                  {attributes &&
+                                    attributes.length > 0 &&
+                                    attributes.map((attribute: any) => (
+                                      <div
+                                        key={attribute.id}
+                                        className="border p-2 rounded-md"
+                                      >
+                                        <p className="font-bold">
+                                          Nombre: {attribute.name}
+                                        </p>
 
-                                            <div className="absolute right-2 bottom-2 flex items-center gap-2">
-                                              <Button
-                                                variant={'secondary'}
-                                                onClick={() => {
-                                                  setAttributes((prev: any) =>
-                                                    prev.map(
-                                                      (
-                                                        attr: any,
-                                                        index: number
-                                                      ) => {
-                                                        if (
-                                                          index === attrIndex
-                                                        ) {
-                                                          return {
-                                                            ...attr,
-                                                            save: true,
-                                                          };
-                                                        }
-                                                        return attr;
-                                                      }
-                                                    )
-                                                  );
-                                                }}
-                                                className="px-10"
-                                                type="button"
-                                              >
-                                                Guardar
-                                              </Button>
-                                            </div>
+                                        <p>Valores:</p>
+                                        <ul className="list-disc pl-5">
+                                          {attribute.options &&
+                                          attribute.options.length > 0 ? (
+                                            attribute.options.map(
+                                              (option: any, index: number) => (
+                                                <li key={index}>
+                                                  {option.value ||
+                                                    `Valor ${index + 1}`}
+                                                </li>
+                                              )
+                                            )
+                                          ) : (
+                                            <li>No hay valores</li>
+                                          )}
+                                        </ul>
 
-                                            <div>
-                                              <Label
-                                                className={`${
-                                                  errorMessages[
-                                                    attribute?.id
-                                                  ] && 'text-accent'
-                                                } flex items-center gap-1 pb-1`}
-                                                htmlFor={attribute?.name}
-                                              >
-                                                Nombre
-                                              </Label>
-
-                                              <Input
-                                                id={attribute?.name}
-                                                type={attribute?.type}
-                                                onChange={(event) => {
-                                                  const value =
-                                                    event.target.value;
-
-                                                  setAttributes((prev: any) =>
-                                                    prev.map(
-                                                      (
-                                                        attr: any,
-                                                        index: number
-                                                      ) => {
-                                                        if (
-                                                          index === attrIndex
-                                                        ) {
-                                                          return {
-                                                            ...attr,
-                                                            name: value,
-                                                          };
-                                                        }
-                                                        return attr;
-                                                      }
-                                                    )
-                                                  );
-
-                                                  validateField(
-                                                    attribute?.name,
-                                                    value
-                                                  );
-                                                }}
-                                                value={attribute?.name || ''}
-                                                name={attribute?.name}
-                                                className="max-w-[400px]"
-                                              />
-
-                                              {errorMessages[attribute?.id] && (
-                                                <p className="text-accent text-xs">
-                                                  {errorMessages[attribute?.id]}
-                                                </p>
-                                              )}
-                                            </div>
-
-                                            <div className="pt-3">
-                                              <Label className="flex items-center gap-1 pb-1">
-                                                Valores
-                                              </Label>
-                                              <div className="w-full grid grid-cols-5 gap-2">
-                                                {attribute?.options.map(
-                                                  (
-                                                    option: any,
-                                                    optIndex: number
-                                                  ) => (
-                                                    <div
-                                                      key={optIndex}
-                                                      className="relative"
-                                                    >
-                                                      <Input
-                                                        key={option.id}
-                                                        id={option.name}
-                                                        type="text"
-                                                        onChange={(event) => {
-                                                          const value =
-                                                            event.target.value;
-                                                          setAttributes(
-                                                            (prev: any) =>
-                                                              prev.map(
-                                                                (
-                                                                  attr: any,
-                                                                  index: number
-                                                                ) => {
-                                                                  if (
-                                                                    index ===
-                                                                    attrIndex
-                                                                  ) {
-                                                                    const updatedOptions =
-                                                                      attr.options.map(
-                                                                        (
-                                                                          opt: any,
-                                                                          i: number
-                                                                        ) => {
-                                                                          if (
-                                                                            i ===
-                                                                            optIndex
-                                                                          ) {
-                                                                            return {
-                                                                              ...opt,
-                                                                              value,
-                                                                            };
-                                                                          }
-                                                                          return opt;
-                                                                        }
-                                                                      );
-                                                                    return {
-                                                                      ...attr,
-                                                                      options:
-                                                                        updatedOptions,
-                                                                    };
-                                                                  }
-                                                                  return attr;
-                                                                }
-                                                              )
-                                                          );
-                                                        }}
-                                                        value={option.value}
-                                                        name={option.name}
-                                                        className="max-w-[400px]"
-                                                        placeholder={
-                                                          option.name
-                                                        }
-                                                      />
-                                                      <IoClose
-                                                        className="text-accent absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer"
-                                                        onClick={() => {
-                                                          setAttributes(
-                                                            (prev: any) =>
-                                                              prev.map(
-                                                                (
-                                                                  attr: any,
-                                                                  index: number
-                                                                ) => {
-                                                                  if (
-                                                                    index ===
-                                                                    attrIndex
-                                                                  ) {
-                                                                    return {
-                                                                      ...attr,
-                                                                      options:
-                                                                        attr.options.filter(
-                                                                          (
-                                                                            o: any
-                                                                          ) =>
-                                                                            o.id !==
-                                                                            option.id
-                                                                        ),
-                                                                    };
-                                                                  }
-                                                                  return attr;
-                                                                }
-                                                              )
-                                                          );
-                                                        }}
-                                                      />
-                                                    </div>
-                                                  )
-                                                )}
-                                              </div>
-                                            </div>
-
-                                            <div className="flex items-center space-x-2 pt-3">
-                                              <Checkbox
-                                                onCheckedChange={(checked) => {
-                                                  setAttributes((prev: any) =>
-                                                    prev.map(
-                                                      (
-                                                        attr: any,
-                                                        index: number
-                                                      ) => {
-                                                        if (
-                                                          index === attrIndex
-                                                        ) {
-                                                          return {
-                                                            ...attr,
-                                                            visible: checked,
-                                                          };
-                                                        }
-                                                        return attr;
-                                                      }
-                                                    )
-                                                  );
-                                                }}
-                                                defaultChecked={
-                                                  attribute?.visible
-                                                }
-                                                id={`${attribute?.name}-visible`}
-                                              />
-                                              <label
-                                                htmlFor={`${attribute?.name}`}
-                                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                              >
-                                                Visible en la pagina de
-                                                productos
-                                              </label>
-                                            </div>
-                                          </div>
-                                        )
-                                      )}
-                                    </>
-                                  )}
+                                        <p>
+                                          Visible:{' '}
+                                          {attribute.visible ? 'Sí' : 'No'}
+                                        </p>
+                                      </div>
+                                    ))}
                                 </div>
+
+                                {newAttribute && (
+                                  <div className="relative p-2 border rounded-md">
+                                    <div className="absolute right-2 flex items-center gap-2">
+                                      <Button
+                                        variant={'outline'}
+                                        onClick={() => {
+                                          setNewAttribute((prev: any) => ({
+                                            ...prev,
+                                            options: [
+                                              ...prev.options,
+                                              {
+                                                id: Date.now(),
+                                                name: `Valor ${prev.options.length + 1}`,
+                                                value: '',
+                                              },
+                                            ],
+                                          }));
+                                        }}
+                                        className="bg-transparent hidden sm:block border-secondary h-8 py-0 hover:text-secondary px-5 text-secondary hover:bg-secondary/10"
+                                        type="button"
+                                      >
+                                        Agregar valor
+                                      </Button>
+
+                                      <Button
+                                        variant={'outline'}
+                                        onClick={() => {
+                                          setNewAttribute(null); // Cerrar el formulario de nuevo atributo
+                                        }}
+                                        className="bg-transparent hidden sm:block border-accent h-8 py-0 hover:text-accent px-5 text-accent hover:bg-accent/10"
+                                        type="button"
+                                      >
+                                        Cancelar
+                                      </Button>
+                                    </div>
+
+                                    {/* Formulario para crear un nuevo atributo */}
+                                    <div>
+                                      <Label htmlFor={newAttribute.name}>
+                                        Nombre
+                                      </Label>
+                                      <Input
+                                        id={newAttribute.name}
+                                        type="text"
+                                        value={newAttribute.name || ''}
+                                        onChange={(e) =>
+                                          setNewAttribute((prev: any) => ({
+                                            ...prev,
+                                            name: e.target.value,
+                                          }))
+                                        }
+                                        className="max-w-[400px]"
+                                      />
+                                    </div>
+
+                                    <div className="pt-3">
+                                      <Label>Valores</Label>
+                                      <div className="grid grid-cols-5 gap-2">
+                                        {newAttribute.options.map(
+                                          (option: any, optIndex: number) => (
+                                            <div
+                                              key={optIndex}
+                                              className="relative"
+                                            >
+                                              <Input
+                                                key={option.id}
+                                                type="text"
+                                                value={option.value}
+                                                onChange={(e) => {
+                                                  const value = e.target.value;
+                                                  setNewAttribute(
+                                                    (prev: any) => ({
+                                                      ...prev,
+                                                      options: prev.options.map(
+                                                        (
+                                                          opt: any,
+                                                          i: number
+                                                        ) =>
+                                                          i === optIndex
+                                                            ? { ...opt, value }
+                                                            : opt
+                                                      ),
+                                                    })
+                                                  );
+                                                }}
+                                                className="max-w-[400px]"
+                                                placeholder={option.name}
+                                              />
+                                            </div>
+                                          )
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    <div className="pt-3 flex items-center space-x-2">
+                                      <Checkbox
+                                        onCheckedChange={(checked) => {
+                                          setNewAttribute((prev: any) => ({
+                                            ...prev,
+                                            visible: checked,
+                                          }));
+                                        }}
+                                        checked={newAttribute.visible}
+                                        id={`${newAttribute.name}-visible`}
+                                      />
+                                      <label
+                                        htmlFor={`${newAttribute.name}-visible`}
+                                      >
+                                        Visible en la página de productos
+                                      </label>
+                                    </div>
+
+                                    <div className="pt-3 flex items-center justify-end">
+                                      <Button
+                                        variant="secondary"
+                                        onClick={() => {
+                                          setAttributes((prev: any) => [
+                                            ...prev,
+                                            newAttribute,
+                                          ]);
+                                          setNewAttribute(null);
+                                        }}
+                                        className="px-10"
+                                        type="button"
+                                      >
+                                        Guardar
+                                      </Button>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             ) : tab.value === 'variations' ? (
                               <>
@@ -1565,7 +1434,9 @@ const CreateForm: React.FC<Props> = () => {
                                                 </div>
                                               ) : (
                                                 <>
-                                                  {fieldInfo.type === 'text' ? (
+                                                  {fieldInfo.type === 'text' ||
+                                                  fieldInfo.type ===
+                                                    'number' ? (
                                                     <>
                                                       <Input
                                                         id={fieldInfo.name}
