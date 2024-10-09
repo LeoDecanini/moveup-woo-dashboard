@@ -260,6 +260,7 @@ const CreateForm: React.FC<Props> = () => {
     date_on_sale_to: null,
     price: '',
     discounted_price: '',
+    weight: 0,
   });
 
   useEffect(() => {
@@ -652,10 +653,93 @@ const CreateForm: React.FC<Props> = () => {
 
     console.log(formData);
 
+    /* 
+     type: productType,
+    inventory_management: false,
+    reserves: 'option-no',
+    name: '',
+    description: '',
+    short_description: '',
+    sku: '',
+    code: '',
+    sold_individually: false,
+    stock_quantity: 0,
+    low_existens: 0,
+    dimensions: {
+      length: 0,
+      width: 0,
+      height: 0,
+    },
+    program: false,
+    files: [],
+    filesGallery: [],
+    date_on_sale_from: null,
+    date_on_sale_to: null,
+    price: '',
+    discounted_price: '',
+    */
+
+    /* 
+    {
+  "name": "Camiseta Deportiva",
+  "type": "simple",
+  "regular_price": "29.99",
+  "description": "Una camiseta deportiva de alta calidad.",
+  "short_description": "Camiseta deportiva.",
+  "sku": "CAMIS-001",
+  "categories": [
+    { "id": 9 }
+  ],
+  "tags": [
+    { "id": 14 }
+  ],
+  "images": [
+    { "src": "https://example.com/camiseta.jpg" },
+    { "id": 123 }
+  ],
+  "manage_stock": true,
+  "stock_quantity": 50,
+  "in_stock": true,
+  "weight": "0.5",
+  "dimensions": {
+    "length": "20",
+    "width": "15",
+    "height": "3"
+  },
+  "status": "publish",
+  "reviews_allowed": true
+}
+    */
+
+    const {
+      name,
+      price,
+      discounted_price,
+      description,
+      short_description,
+      sku,
+      dimensions,
+      inventory_management,
+      stock_quantity,
+      weight,
+    } = formData;
+
     const data = {
-      name: formData['name'],
-      regular_price: formData['price'],
-      sale_price: formData['discounted_price'],
+      name: name,
+      status: 'publish',
+      regular_price: price,
+      sale_price: discounted_price,
+      description: description,
+      short_description: short_description,
+      sku: sku,
+      weight: weight,
+      ...(dimensions.length !== 0 ||
+      dimensions.width !== 0 ||
+      dimensions.height !== 0
+        ? { dimensions }
+        : {}),
+      manage_stock: inventory_management,
+      stock_quantity: stock_quantity,
     };
 
     console.log(data);
