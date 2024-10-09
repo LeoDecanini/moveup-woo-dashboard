@@ -11,7 +11,14 @@ import { IoClose } from 'react-icons/io5';
 import { ServerUrl } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-/* import axios from "axios"; */
+
+import {
+  FileInput,
+  FileUploader,
+  FileUploaderContent,
+  FileUploaderItem,
+} from '@/components/extension/file-uploader';
+import { DropzoneOptions } from 'react-dropzone';
 
 /* Shadcn */
 import { Label } from '@/components/ui/label';
@@ -98,7 +105,7 @@ const CreateForm: React.FC<Props> = () => {
   const [newCategoryName, setNewCategoryName] = useState<string>('');
   const [newTagsName, setNewTagsName] = useState<any[]>([]);
   const [newTag, setNewTag] = useState<boolean>(false);
-  const [newTagName, setNewTagName] = useState<any[]>([]);
+  const [newTagName, setNewTagName] = useState<any>();
   const [selectedCategories, setSelectedCategories] = useState<any[]>([]);
   const [selectedTags, setSelectedTags] = useState<any[]>([]);
 
@@ -325,9 +332,24 @@ const CreateForm: React.FC<Props> = () => {
     return !noValid;
   };
 
+  const dropzone = {
+    accept: {
+      'image/*': ['.jpg', '.jpeg', '.png'],
+    },
+    maxFiles: 1,
+    maxSize: 1 * 1920 * 1080,
+  } satisfies DropzoneOptions;
+
+  const handleImageClick = (file: File) => {
+    /* setSelectedImage(file);
+    setIsModalOpen(true); */
+  };
+
   const extractTagIds = (selectedTags) => {
     return selectedTags.map((tag) => tag.id);
   };
+
+  const hasFiles = files && files.length > 0;
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
@@ -340,22 +362,30 @@ const CreateForm: React.FC<Props> = () => {
       return;
     }
 
-    formData.status = 'publish';
-    formData.categories = extractTagIds(selectedCategories);
-    formData.tags = extractTagIds(selectedTags);
+    const formDataToSend = new FormData();
 
-    console.log({ formData });
+
+    formDataToSend.append('userId', '67020d858e7ee860928a675c');
+    formDataToSend.append('title', formData.title);
+    formDataToSend.append('status', 'publish');
+    if (formData && formData.content) formDataToSend.append('content', formData.content);
+    if (categories) formDataToSend.append('categories',extractTagIds(selectedCategories));
+    if (tags) formDataToSend.append('tags', extractTagIds(selectedTags));
+    
+    if (files && files[0]) {
+      console.log(files[0]);
+      formDataToSend.append('file', files[0]); 
+  }
+  
+    console.log({ formDataToSend });
 
     try {
       const response = await axios.post(
         `${ServerUrl}/wordpress/posts`,
-        {
-          userId: '66fcceab3f69e67d4843014a',
-          post: formData,
-        },
+        formDataToSend,
         {
           headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'multipart/form-data',
           },
         }
       );
@@ -609,6 +639,75 @@ const CreateForm: React.FC<Props> = () => {
               </div>
             </div>
           </div>
+
+          
+          <div className="bg-white rounded-md shadow">
+              <div className="flex flex-col gap-2 p-3">
+                <h3>Imagen principal</h3>
+
+                <FileUploader
+                  value={files}
+                  onValueChange={setFiles}
+                  dropzoneOptions={dropzone}
+                  className="flex flex-col gap-2"
+                >
+                  <div>
+                    {hasFiles ? (
+                      <>
+                        <img
+                          onClick={() => handleImageClick(files[0])}
+                          className="w-full object-cover aspect-square rounded-lg cursor-pointer"
+                          src={URL?.createObjectURL(files[0])}
+                          alt=""
+                        />
+                      </>
+                    ) : (
+                      <FileInput className="w-full aspect-square flex items-center justify-center text-center border-2 rounded-lg border-dashed border-accent/50">
+                        <div className="flex items-center justify-center text-center flex-col">
+                          <svg
+                            className="w-8 h-8 mb-3 text-accent/70 dark:text-accent/70"
+                            aria-hidden="true"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 20 16"
+                          >
+                            <path
+                              stroke="currentColor"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
+                            ></path>
+                          </svg>
+                          <p className="mb-1 text-sm text-accent/70 dark:text-accent/70">
+                            <span className="font-semibold">
+                              Click to upload
+                            </span>
+                            &nbsp; or drag and drop
+                          </p>
+                          <p className="text-xs text-accent/70 dark:text-accent/70">
+                            SVG, PNG, JPG or GIF
+                          </p>
+                        </div>
+                      </FileInput>
+                    )}
+                  </div>
+                  <FileUploaderContent>
+                    {files &&
+                      files.map((item: any, index: any) => (
+                        <FileUploaderItem
+                          className="group"
+                          key={index}
+                          index={index}
+                        >
+                          <span className="truncate max-w-52">{item.name}</span>
+                        </FileUploaderItem>
+                      ))}
+                  </FileUploaderContent>
+                </FileUploader>
+              </div>
+            </div>
+
 
           <div className="bg-white rounded-md shadow">
             <div className="flex flex-col gap-2 p-3">
