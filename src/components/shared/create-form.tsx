@@ -1398,7 +1398,7 @@ const CreateForm: React.FC<Props> = () => {
                               </div>
                             ) : tab.value === 'variations' ? (
                               <>
-                                <div className="w-full h-[198px] flex justify-center flex-col text-center">
+                                <div className="w-full min-h-[198px] flex justify-center flex-col text-center">
                                   {attributes?.length === 0 ||
                                   attributes === null ? (
                                     <p>
@@ -1409,7 +1409,7 @@ const CreateForm: React.FC<Props> = () => {
                                     </p>
                                   ) : (
                                     <div className="relative h-full">
-                                      <div className="absolute top-0 left-0 flex gap-2 items-center">
+                                      <div className="flex gap-2 items-center">
                                         <Button
                                           variant={'outline'}
                                           onClick={() =>
@@ -1430,6 +1430,79 @@ const CreateForm: React.FC<Props> = () => {
                                           Agregar manualmente
                                         </Button>
                                       </div>
+
+                                      {variations?.length > 0 && (
+                                        <Accordion type="single" collapsible>
+                                          {variations?.map(
+                                            (variation, index) => (
+                                              <AccordionItem
+                                                value={`${index}`}
+                                                key={variation.id}
+                                              >
+                                                <AccordionTrigger>
+                                                  <div className="flex items-center gap-2">
+                                                    {variation.attributes.map(
+                                                      (
+                                                        attribute: any,
+                                                        attrIndex: number
+                                                      ) => (
+                                                        <div
+                                                          key={attrIndex}
+                                                          className="my-2"
+                                                        >
+                                                          <Select
+                                                            onValueChange={(
+                                                              value
+                                                            ) => {
+                                                              const newValue =
+                                                                value;
+                                                            }}
+                                                            defaultValue={
+                                                              attribute.value
+                                                            }
+                                                          >
+                                                            <SelectTrigger className="w-[170px]">
+                                                              <SelectValue
+                                                                placeholder={`Seleccionar ${attribute.name}`}
+                                                              />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                              {attributes
+                                                                .find(
+                                                                  (attr: any) =>
+                                                                    attr.name ===
+                                                                    attribute.name
+                                                                )
+                                                                ?.options.map(
+                                                                  (
+                                                                    option: string,
+                                                                    optionIndex: number
+                                                                  ) => (
+                                                                    <SelectItem
+                                                                      key={
+                                                                        optionIndex
+                                                                      }
+                                                                      value={
+                                                                        option
+                                                                      }
+                                                                    >
+                                                                      {option}
+                                                                    </SelectItem>
+                                                                  )
+                                                                )}
+                                                            </SelectContent>
+                                                          </Select>
+                                                        </div>
+                                                      )
+                                                    )}
+                                                  </div>
+                                                </AccordionTrigger>
+                                                <AccordionContent></AccordionContent>
+                                              </AccordionItem>
+                                            )
+                                          )}
+                                        </Accordion>
+                                      )}
                                     </div>
                                   )}
                                 </div>
