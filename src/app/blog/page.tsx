@@ -301,6 +301,7 @@ const BlogPage = () => {
                         }
                         {post.title.rendered ||
                           <em className={'opacity-70'}>Sin título</em>}
+                          
                       </TableCell>
                       <TableCell>
                         <Badge
@@ -317,7 +318,7 @@ const BlogPage = () => {
                       <TableCell>{new Date(post.date).toLocaleDateString()}</TableCell>
                       <TableCell className="flex items-center justify-center gap-2">
                         {
-                          post.link &&
+                          post.link && post.status === "publish" &&
                           <Link className={`text-primary`} href={post.link} target="_blank">
                             <TooltipProvider>
                               <Tooltip>
