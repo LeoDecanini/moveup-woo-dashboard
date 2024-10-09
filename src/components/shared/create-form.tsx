@@ -950,53 +950,299 @@ const CreateForm: React.FC<Props> = () => {
                                 </div>
 
                                 <Accordion type="single" collapsible>
-                                  <AccordionItem value="item-1">
-                                    <AccordionTrigger>
-                                      Is it accessible?
-                                    </AccordionTrigger>
-                                    <AccordionContent>
-                                      Yes. It adheres to the WAI-ARIA design
-                                      pattern.
-                                    </AccordionContent>
-                                  </AccordionItem>
-                                </Accordion>
-
-                                <div className="grid gap-3">
                                   {attributes &&
                                     attributes.length > 0 &&
-                                    attributes.map((attribute: any) => (
-                                      <div
-                                        key={attribute.id}
-                                        className="border p-2 rounded-md"
-                                      >
-                                        <p className="font-bold">
-                                          Nombre: {attribute.name}
-                                        </p>
+                                    attributes.map(
+                                      (attribute: any, attrIndex: number) => (
+                                        <AccordionItem
+                                          key={attribute.id}
+                                          value={`item-${attribute.id}`}
+                                        >
+                                          <AccordionTrigger className="hover:no-underline">
+                                            {attribute.name}
+                                          </AccordionTrigger>
+                                          <AccordionContent>
+                                            <div className="relative p-2 border rounded-md">
+                                              {/* Formulario de edición */}
+                                              <div className="flex items-center gap-2 pb-3">
+                                                <Button
+                                                  variant="outline"
+                                                  onClick={() => {
+                                                    setAttributes((prev: any) =>
+                                                      prev.map(
+                                                        (
+                                                          attr: any,
+                                                          index: number
+                                                        ) => {
+                                                          if (
+                                                            index === attrIndex
+                                                          ) {
+                                                            return {
+                                                              ...attr,
+                                                              options: [
+                                                                ...attr.options,
+                                                                {
+                                                                  id: Date.now(),
+                                                                  name: `Valor ${attr.options.length + 1}`,
+                                                                  value: '',
+                                                                  save: false,
+                                                                },
+                                                              ],
+                                                            };
+                                                          }
+                                                          return attr;
+                                                        }
+                                                      )
+                                                    );
+                                                  }}
+                                                  className="bg-transparent border-secondary h-8 py-0 hover:text-secondary px-5 text-secondary hover:bg-secondary/10"
+                                                  type="button"
+                                                >
+                                                  Agregar valor
+                                                </Button>
+                                              </div>
 
-                                        <p>Valores:</p>
-                                        <ul className="list-disc pl-5">
-                                          {attribute.options &&
-                                          attribute.options.length > 0 ? (
-                                            attribute.options.map(
-                                              (option: any, index: number) => (
-                                                <li key={index}>
-                                                  {option.value ||
-                                                    `Valor ${index + 1}`}
-                                                </li>
-                                              )
-                                            )
-                                          ) : (
-                                            <li>No hay valores</li>
-                                          )}
-                                        </ul>
+                                              <div>
+                                                <Label
+                                                  className={`${
+                                                    errorMessages[
+                                                      attribute?.id
+                                                    ] && 'text-accent'
+                                                  } flex items-center gap-1 pb-1`}
+                                                  htmlFor={attribute?.name}
+                                                >
+                                                  Nombre
+                                                </Label>
+                                                <Input
+                                                  id={attribute?.name}
+                                                  type="text"
+                                                  onChange={(event) => {
+                                                    const value =
+                                                      event.target.value;
+                                                    setAttributes((prev: any) =>
+                                                      prev.map(
+                                                        (
+                                                          attr: any,
+                                                          index: number
+                                                        ) => {
+                                                          if (
+                                                            index === attrIndex
+                                                          ) {
+                                                            return {
+                                                              ...attr,
+                                                              name: value,
+                                                            };
+                                                          }
+                                                          return attr;
+                                                        }
+                                                      )
+                                                    );
+                                                    validateField(
+                                                      attribute?.name,
+                                                      value
+                                                    );
+                                                  }}
+                                                  value={attribute?.name || ''}
+                                                  name={attribute?.name}
+                                                  className="max-w-[400px]"
+                                                />
+                                                {errorMessages[
+                                                  attribute?.id
+                                                ] && (
+                                                  <p className="text-accent text-xs">
+                                                    {
+                                                      errorMessages[
+                                                        attribute?.id
+                                                      ]
+                                                    }
+                                                  </p>
+                                                )}
+                                              </div>
 
-                                        <p>
-                                          Visible:{' '}
-                                          {attribute.visible ? 'Sí' : 'No'}
-                                        </p>
-                                      </div>
-                                    ))}
-                                </div>
+                                              <div className="pt-3">
+                                                <Label className="flex items-center gap-1 pb-1">
+                                                  Valores
+                                                </Label>
+                                                <div className="w-full grid grid-cols-5 gap-2">
+                                                  {attribute?.options.map(
+                                                    (
+                                                      option: any,
+                                                      optIndex: number
+                                                    ) => (
+                                                      <div
+                                                        key={option.id}
+                                                        className="relative"
+                                                      >
+                                                        <Input
+                                                          id={option.name}
+                                                          type="text"
+                                                          onChange={(event) => {
+                                                            const value =
+                                                              event.target
+                                                                .value;
+                                                            setAttributes(
+                                                              (prev: any) =>
+                                                                prev.map(
+                                                                  (
+                                                                    attr: any,
+                                                                    index: number
+                                                                  ) => {
+                                                                    if (
+                                                                      index ===
+                                                                      attrIndex
+                                                                    ) {
+                                                                      const updatedOptions =
+                                                                        attr.options.map(
+                                                                          (
+                                                                            opt: any,
+                                                                            i: number
+                                                                          ) => {
+                                                                            if (
+                                                                              i ===
+                                                                              optIndex
+                                                                            ) {
+                                                                              return {
+                                                                                ...opt,
+                                                                                value,
+                                                                              };
+                                                                            }
+                                                                            return opt;
+                                                                          }
+                                                                        );
+                                                                      return {
+                                                                        ...attr,
+                                                                        options:
+                                                                          updatedOptions,
+                                                                      };
+                                                                    }
+                                                                    return attr;
+                                                                  }
+                                                                )
+                                                            );
+                                                          }}
+                                                          value={option.value}
+                                                          name={option.name}
+                                                          className="max-w-[400px]"
+                                                          placeholder={
+                                                            option.name
+                                                          }
+                                                        />
+                                                        <IoClose
+                                                          className="text-accent absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer"
+                                                          onClick={() => {
+                                                            setAttributes(
+                                                              (prev: any) =>
+                                                                prev.map(
+                                                                  (
+                                                                    attr: any,
+                                                                    index: number
+                                                                  ) => {
+                                                                    if (
+                                                                      index ===
+                                                                      attrIndex
+                                                                    ) {
+                                                                      return {
+                                                                        ...attr,
+                                                                        options:
+                                                                          attr.options.filter(
+                                                                            (
+                                                                              o: any
+                                                                            ) =>
+                                                                              o.id !==
+                                                                              option.id
+                                                                          ),
+                                                                      };
+                                                                    }
+                                                                    return attr;
+                                                                  }
+                                                                )
+                                                            );
+                                                          }}
+                                                        />
+                                                      </div>
+                                                    )
+                                                  )}
+                                                </div>
+                                              </div>
+
+                                              <div className="flex items-center space-x-2 pt-3">
+                                                <Checkbox
+                                                  onCheckedChange={(
+                                                    checked
+                                                  ) => {
+                                                    setAttributes((prev: any) =>
+                                                      prev.map(
+                                                        (
+                                                          attr: any,
+                                                          index: number
+                                                        ) => {
+                                                          if (
+                                                            index === attrIndex
+                                                          ) {
+                                                            return {
+                                                              ...attr,
+                                                              visible: checked,
+                                                            };
+                                                          }
+                                                          return attr;
+                                                        }
+                                                      )
+                                                    );
+                                                  }}
+                                                  defaultChecked={
+                                                    attribute?.visible
+                                                  }
+                                                  id={`${attribute?.name}-visible`}
+                                                />
+                                                <label
+                                                  htmlFor={`${attribute?.name}`}
+                                                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                                >
+                                                  Visible en la pagina de
+                                                  productos
+                                                </label>
+                                              </div>
+
+                                              {/* Botones Guardar y Eliminar */}
+                                              <div className="flex justify-end space-x-2 pt-4">
+                                                <Button
+                                                  variant="outline"
+                                                  className="text-secondary border-secondary hover:bg-secondary/10"
+                                                  onClick={() => {
+                                                    // Lógica de eliminar el atributo
+                                                    setAttributes((prev: any) =>
+                                                      prev.filter(
+                                                        (
+                                                          attr: any,
+                                                          index: number
+                                                        ) => index !== attrIndex
+                                                      )
+                                                    );
+                                                  }}
+                                                >
+                                                  Eliminar
+                                                </Button>
+                                                <Button
+                                                  variant="secondary"
+                                                  type='button'
+                                                  className="bg-primary text-white hover:bg-primary/80"
+                                                  onClick={() => {
+                                                    // Por ahora no hace nada
+                                                    console.log(
+                                                      'Guardado el atributo:',
+                                                      attribute
+                                                    );
+                                                  }}
+                                                >
+                                                  Guardar
+                                                </Button>
+                                              </div>
+                                            </div>
+                                          </AccordionContent>
+                                        </AccordionItem>
+                                      )
+                                    )}
+                                </Accordion>
 
                                 {newAttribute && (
                                   <div className="relative p-2 border rounded-md">
