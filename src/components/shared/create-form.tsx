@@ -732,7 +732,7 @@ const CreateForm: React.FC<Props> = () => {
       description: description,
       short_description: short_description,
       sku: sku,
-      weight: weight,
+      ...(weight !== 0 ? { weight } : {}),
       ...(dimensions.length !== 0 ||
       dimensions.width !== 0 ||
       dimensions.height !== 0
