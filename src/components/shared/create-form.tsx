@@ -387,7 +387,6 @@ const CreateForm: React.FC<Props> = () => {
               type: "check",
               text: "Hacer seguimiento de la cantidad de inventario de este producto",
             },
-
             {
               name: "stock_quantity",
               label: "Cantidad",
@@ -892,7 +891,9 @@ const CreateForm: React.FC<Props> = () => {
       checks_types: {
         active: true,
         inventory_management: false,
-      }
+      },
+      stock_quantity: 0,
+      reserves: "no"
     }));
 
     console.log("Variaciones generadas:", allVariations);
@@ -900,7 +901,7 @@ const CreateForm: React.FC<Props> = () => {
     setVariations(allVariations);
   };
 
-  const fields = [
+  let fields = [
     {
       name: "file",
       label: "Imagen",
@@ -984,7 +985,6 @@ const CreateForm: React.FC<Props> = () => {
         },
       ],
     },
-
     {
       name: "description",
       label: "Descripción",
@@ -1202,7 +1202,7 @@ const CreateForm: React.FC<Props> = () => {
                                                   }}
                                                   value={attribute?.name || ""}
                                                   name={attribute?.name}
-                                                  className="max-w-[400px]"
+                                                  className=""
                                                 />
                                                 {errorMessages[
                                                   attribute?.id
@@ -1271,7 +1271,7 @@ const CreateForm: React.FC<Props> = () => {
                                                             );
                                                           }}
                                                           value={option}
-                                                          className="max-w-[400px]"
+                                                          className=""
                                                           placeholder={`Valor ${optIndex + 1}`}
                                                         />
                                                         <IoClose
@@ -1422,7 +1422,7 @@ const CreateForm: React.FC<Props> = () => {
                                             name: e.target.value,
                                           }))
                                         }
-                                        className="max-w-[400px]"
+                                        className=""
                                       />
                                     </div>
 
@@ -1458,7 +1458,7 @@ const CreateForm: React.FC<Props> = () => {
                                                     }),
                                                   );
                                                 }}
-                                                className="max-w-[400px]"
+                                                className=""
                                                 placeholder={`Valor ${optIndex + 1}`}
                                               />
                                             </div>
@@ -1605,309 +1605,378 @@ const CreateForm: React.FC<Props> = () => {
                                                     )}
                                                   </div>
                                                 </AccordionTrigger>
-
                                                 <AccordionContent
                                                   className={`w-full grid grid-cols-2 gap-3 p-1`}
                                                 >
                                                   {fields.map(
-                                                    (fieldInfo, fieldIndex) => (
-                                                      <div
-                                                        className={` ${fieldInfo.colSpan}`}
-                                                        key={fieldIndex}
-                                                      >
-                                                        <Label
-                                                          className={`flex items-center text-left gap-1 pb-1 max-w-[200px] w-full line-clamp-2`}
-                                                          htmlFor={
-                                                            fieldInfo.name
-                                                          }
+                                                    (fieldInfo, fieldIndex) => {
+                                                      return (
+                                                        <div
+                                                          className={` ${fieldInfo.colSpan}`}
+                                                          key={fieldIndex}
                                                         >
-                                                          {fieldInfo.label}
-                                                        </Label>
+                                                          <Label
+                                                            className={`flex items-center text-left gap-1 pb-1 max-w-[200px] w-full line-clamp-2`}
+                                                            htmlFor={
+                                                              fieldInfo.name
+                                                            }
+                                                          >
+                                                            {fieldInfo.label}
+                                                          </Label>
 
-                                                        {fieldInfo.name ===
-                                                          "dimensions" ? (
-                                                          <div className="flex gap-2">
-                                                            {/* @ts-ignore */}
-                                                            {fieldInfo.options.map(
-                                                              (option) => (
-                                                                <Input
-                                                                  key={
-                                                                    option.formdata
-                                                                  }
-                                                                  placeholder={
-                                                                    option.label
-                                                                  }
-                                                                  type="number"
-                                                                  onChange={(
-                                                                    event,
-                                                                  ) => {
-                                                                    const value =
-                                                                      event
-                                                                        .target
-                                                                        .value; // Captura el valor ingresado
-                                                                    const updatedVariations =
-                                                                      [
-                                                                        ...variations,
-                                                                      ]; // Crea una copia de las variaciones
-                                                                    updatedVariations[
-                                                                      index
-                                                                    ] = {
-                                                                      ...updatedVariations[
-                                                                      index
-                                                                      ],
-                                                                      dimensions:
-                                                                      {
+                                                          {fieldInfo.name ===
+                                                            "dimensions" ? (
+                                                            <div className="flex gap-2">
+                                                              {/* @ts-ignore */}
+                                                              {fieldInfo.options.map(
+                                                                (option) => (
+                                                                  <Input
+                                                                    key={
+                                                                      option.formdata
+                                                                    }
+                                                                    placeholder={
+                                                                      option.label
+                                                                    }
+                                                                    type="number"
+                                                                    onChange={(
+                                                                      event,
+                                                                    ) => {
+                                                                      const value =
+                                                                        event
+                                                                          .target
+                                                                          .value; // Captura el valor ingresado
+                                                                      const updatedVariations =
+                                                                        [
+                                                                          ...variations,
+                                                                        ]; // Crea una copia de las variaciones
+                                                                      updatedVariations[
+                                                                        index
+                                                                      ] = {
                                                                         ...updatedVariations[
-                                                                          index
-                                                                        ]
-                                                                          .dimensions,
-                                                                        [option.formdata]:
-                                                                          value, // Asigna el valor al campo correspondiente
-                                                                      },
-                                                                    };
-                                                                    setVariations(
-                                                                      updatedVariations,
-                                                                    ); // Actualiza el estado de variaciones
-                                                                  }}
-                                                                  value={
-                                                                    variation
-                                                                      .dimensions[
-                                                                    option
-                                                                      .formdata
-                                                                    ] || ""
-                                                                  } // Asigna el valor correspondiente del estado
-                                                                  className="max-w-[100px]"
-                                                                />
-                                                              ),
-                                                            )}
-                                                          </div>
-                                                        ) : fieldInfo.name === "identifiers" ? (
-                                                          <div className="flex flex-col gap-5">
-                                                            {/* @ts-ignore */}
-                                                            {fieldInfo.options.map((option) => (
-                                                              <Input
-                                                                key={option.formdata}
-                                                                placeholder={option.label}
-                                                                type="text"
-                                                                onChange={(event) => {
-                                                                  const value = event.target.value;
-                                                                  const updatedVariations = [...variations];
-                                                                  updatedVariations[index] = {
-                                                                    ...updatedVariations[index],
-                                                                    [option.formdata]: value, // Guardar el valor en la variación específica
-                                                                  };
-                                                                  setVariations(updatedVariations);
-                                                                }}
-                                                                value={variation[option.formdata] || ""} // Usar el valor actual de la variación
-                                                              />
-                                                            ))}
-                                                          </div>
-                                                        ) : fieldInfo.name === "checks_types" ? (
-                                                          <div className="flex items-center gap-5 py-2 mb-3 border-y">
-                                                            {/* @ts-ignore */}
-                                                            {fieldInfo.options.map((option) => (
-                                                              <div className="flex items-center space-x-2" key={option.formdata}>
-                                                                <Checkbox
-                                                                  onCheckedChange={(value) => {
+                                                                        index
+                                                                        ],
+                                                                        dimensions:
+                                                                        {
+                                                                          ...updatedVariations[
+                                                                            index
+                                                                          ]
+                                                                            .dimensions,
+                                                                          [option.formdata]:
+                                                                            value, // Asigna el valor al campo correspondiente
+                                                                        },
+                                                                      };
+                                                                      setVariations(
+                                                                        updatedVariations,
+                                                                      ); // Actualiza el estado de variaciones
+                                                                    }}
+                                                                    value={
+                                                                      variation
+                                                                        .dimensions[
+                                                                      option
+                                                                        .formdata
+                                                                      ] || ""
+                                                                    } // Asigna el valor correspondiente del estado
+                                                                    className=""
+                                                                  />
+                                                                ),
+                                                              )}
+                                                            </div>
+                                                          ) : fieldInfo.name === "identifiers" ? (
+                                                            <div className="flex flex-col gap-5">
+                                                              {/* @ts-ignore */}
+                                                              {fieldInfo.options.map((option) => (
+                                                                <Input
+                                                                  key={option.formdata}
+                                                                  placeholder={option.label}
+                                                                  type="text"
+                                                                  onChange={(event) => {
+                                                                    const value = event.target.value;
                                                                     const updatedVariations = [...variations];
                                                                     updatedVariations[index] = {
                                                                       ...updatedVariations[index],
-                                                                      checks_types: {
-                                                                        ...updatedVariations[index].checks_types,
-                                                                        [option.formdata]: value,
-                                                                      },
+                                                                      [option.formdata]: value, // Guardar el valor en la variación específica
                                                                     };
                                                                     setVariations(updatedVariations);
                                                                   }}
-                                                                  checked={variation.checks_types[option.formdata]}
-                                                                  id={`${fieldInfo.name}-${option.formdata}`}
+                                                                  value={variation[option.formdata] || ""} // Usar el valor actual de la variación
                                                                 />
-                                                                <label
-                                                                  htmlFor={`${fieldInfo.name}-${option.formdata}`}
-                                                                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                                                >
-                                                                  {option.label}
-                                                                </label>
-                                                              </div>
-                                                            ))}
-                                                          </div>
-                                                        ) : fieldInfo.type ===
-                                                          "text" ||
-                                                          fieldInfo.type ===
-                                                          "number" ? (
-                                                          <Input
-                                                            id={fieldInfo.name}
-                                                            type={
-                                                              fieldInfo.type
-                                                            }
-                                                            onChange={(
-                                                              event,
-                                                            ) => {
-                                                              const value =
-                                                                event.target
-                                                                  .value;
-                                                              const updatedVariation =
-                                                              {
-                                                                ...variation,
-                                                                [fieldInfo.name]:
-                                                                  value,
-                                                              };
-                                                              console.log(
-                                                                updatedVariation,
-                                                              );
-                                                            }}
-                                                            defaultValue={
-                                                              variation[
-                                                              fieldInfo.name
-                                                              ] || ""
-                                                            }
-                                                            name={
-                                                              fieldInfo.name
-                                                            }
-                                                            className="max-w-[400px]"
-                                                          />
-                                                        ) : fieldInfo.type ===
-                                                          "select" ? (
-                                                          <Select
-                                                            onValueChange={(
-                                                              value,
-                                                            ) => {
-                                                              const updatedVariations =
-                                                                [...variations];
-                                                              updatedVariations[
-                                                                index
-                                                              ] = {
-                                                                ...updatedVariations[
-                                                                index
-                                                                ],
-                                                                [fieldInfo.name]:
-                                                                  value, // Guardar el valor en la variación específica
-                                                              };
-                                                              setVariations(
-                                                                updatedVariations,
-                                                              );
-                                                            }}
-                                                            defaultValue={
-                                                              variation[
-                                                              fieldInfo.name
-                                                              ] || "any"
-                                                            } // Usar el valor actual de la variación
-                                                          >
-                                                            <SelectTrigger className="w-[400px]">
-                                                              <SelectValue placeholder="Seleccionar opción" />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                              {/* @ts-ignore */}
-                                                              {fieldInfo?.options.map(
-                                                                (option) => (
-                                                                  <SelectItem
-                                                                    key={option}
-                                                                    value={
-                                                                      option
-                                                                    }
-                                                                  >
-                                                                    {option}
-                                                                  </SelectItem>
-                                                                ),
-                                                              )}
-                                                            </SelectContent>
-                                                          </Select>
-                                                        ) : fieldInfo.type === "file" ? (
-                                                          <FileUploader
-                                                            value={variation.file} // Cambiar el valor a la propiedad file de la variación
-                                                            onValueChange={(newFiles) => {
-                                                              const updatedVariations = [...variations];
-                                                              updatedVariations[index] = {
-                                                                ...updatedVariations[index],
-                                                                file: newFiles, // Guardar el nuevo archivo en la variación
-                                                              };
-                                                              setVariations(updatedVariations);
-                                                            }}
-                                                            dropzoneOptions={dropzone}
-                                                            className="flex flex-col gap-2"
-                                                          >
-                                                            <div>
-                                                              {variation.file && variation.file.length > 0 ? ( // Verifica si hay archivos
-                                                                <>
-                                                                  <img
-                                                                    onClick={() => handleImageClick(variation.file[0])}
-                                                                    className="w-full h-40 object-cover aspect-square rounded-lg cursor-pointer"
-                                                                    src={URL.createObjectURL(variation.file[0])}
-                                                                    alt=""
-                                                                  />
-                                                                </>
-                                                              ) : (
-                                                                <FileInput className="w-full h-40 flex items-center justify-center text-center border-2 rounded-lg border-dashed border-accent/50">
-                                                                  <div className="flex items-center justify-center text-center flex-col">
-                                                                    <svg
-                                                                      className="w-8 h-8 mb-3 text-accent/70 dark:text-accent/70"
-                                                                      aria-hidden="true"
-                                                                      xmlns="http://www.w3.org/2000/svg"
-                                                                      fill="none"
-                                                                      viewBox="0 0 20 16"
-                                                                    >
-                                                                      <path
-                                                                        stroke="currentColor"
-                                                                        strokeLinecap="round"
-                                                                        strokeLinejoin="round"
-                                                                        strokeWidth="2"
-                                                                        d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
-                                                                      ></path>
-                                                                    </svg>
-                                                                    <p className="mb-1 text-sm text-accent/70 dark:text-accent/70">
-                                                                      <span className="font-semibold">Click to upload</span>&nbsp; or drag and drop
-                                                                    </p>
-                                                                    <p className="text-xs text-accent/70 dark:text-accent/70">
-                                                                      SVG, PNG, JPG or GIF
-                                                                    </p>
-                                                                  </div>
-                                                                </FileInput>
-                                                              )}
-                                                            </div>
-                                                            <FileUploaderContent>
-                                                              {variation.file && variation.file.map((item: any, index: any) => (
-                                                                <FileUploaderItem
-                                                                  className="group"
-                                                                  key={index}
-                                                                  index={index}
-                                                                >
-                                                                  <span className="truncate max-w-52">{item.name}</span>
-                                                                </FileUploaderItem>
                                                               ))}
-                                                            </FileUploaderContent>
-                                                          </FileUploader>
-                                                        ) : (
-                                                          <Textarea
-                                                            id={fieldInfo.name}
-                                                            onChange={(
-                                                              event,
-                                                            ) => {
-                                                              const value =
-                                                                event.target
-                                                                  .value;
-                                                              const updatedVariation =
-                                                              {
-                                                                ...variation,
-                                                                [fieldInfo.name]:
-                                                                  value,
-                                                              };
-                                                              console.log(
-                                                                updatedVariation,
-                                                              );
-                                                            }}
-                                                            defaultValue={
-                                                              variation[
-                                                              fieldInfo.name
-                                                              ] || ""
-                                                            }
-                                                            name={
-                                                              fieldInfo.name
-                                                            }
-                                                            className="resize-none h-32"
-                                                          />
-                                                        )}
-                                                      </div>
-                                                    ),
+                                                            </div>
+                                                          ) : fieldInfo.name === "checks_types" ? (
+                                                            <>
+                                                              <div className="flex items-center gap-5 py-2 mb-3 border-y">
+                                                                {/* @ts-ignore */}
+                                                                {fieldInfo.options.map((option) => (
+                                                                  <div className="flex items-center space-x-2" key={option.formdata}>
+                                                                    <Checkbox
+                                                                      onCheckedChange={(value) => {
+                                                                        const updatedVariations = [...variations];
+                                                                        updatedVariations[index] = {
+                                                                          ...updatedVariations[index],
+                                                                          checks_types: {
+                                                                            ...updatedVariations[index].checks_types,
+                                                                            [option.formdata]: value,
+                                                                          },
+                                                                        };
+                                                                        setVariations(updatedVariations);
+                                                                      }}
+                                                                      checked={variation.checks_types[option.formdata]}
+                                                                      id={`${fieldInfo.name}-${option.formdata}`}
+                                                                    />
+                                                                    <label
+                                                                      htmlFor={`${fieldInfo.name}-${option.formdata}`}
+                                                                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                                                    >
+                                                                      {option.label}
+                                                                    </label>
+                                                                  </div>
+                                                                ))}
+                                                              </div>
+
+                                                              {variation.checks_types.inventory_management && (
+                                                                <div className="grid grid-cols-2 gap-5">
+                                                                  <div className="col-span-1 text-left">
+                                                                    <label htmlFor="stock_quantity" className="text-sm font-medium leading-none">
+                                                                      Cantidad de Stock
+                                                                    </label>
+                                                                    <Input
+                                                                      type="number"
+                                                                      value={variation.stock_quantity || ""}
+                                                                      onChange={(e) => {
+                                                                        const updatedVariations = [...variations];
+                                                                        updatedVariations[index] = {
+                                                                          ...updatedVariations[index],
+                                                                          stock_quantity: e.target.value,
+                                                                        };
+                                                                        setVariations(updatedVariations);
+                                                                      }}
+                                                                      placeholder="Ingrese cantidad de stock"
+                                                                    />
+                                                                  </div>
+
+                                                                  <div className="col-span-1 text-left">
+                                                                    <label htmlFor="reserves" className="text-sm font-medium leading-none">
+                                                                      Permitir Descargas
+                                                                    </label>
+
+                                                                    <Select
+                                                                      onValueChange={(
+                                                                        value,
+                                                                      ) => {
+                                                                        const updatedVariations = [...variations];
+                                                                        updatedVariations[index] = {
+                                                                          ...updatedVariations[index],
+                                                                          reserves: value,
+                                                                        };
+                                                                        setVariations(updatedVariations);
+                                                                      }}
+                                                                      defaultValue={
+                                                                        variation["reserves"] || "any"
+                                                                      }
+                                                                    >
+                                                                      <SelectTrigger className="">
+                                                                        <SelectValue placeholder="Seleccionar opción" />
+                                                                      </SelectTrigger>
+                                                                      <SelectContent>
+                                                                        <SelectItem
+                                                                          value={"no"}
+                                                                        >
+                                                                          No permitir
+                                                                        </SelectItem>
+                                                                        <SelectItem
+                                                                          value={"notify"}
+                                                                        >
+                                                                          Permitir, pero notificar al cliente
+                                                                        </SelectItem>
+                                                                        <SelectItem
+                                                                          value={"yes"}
+                                                                        >
+                                                                          Si permitir
+                                                                        </SelectItem>
+                                                                      </SelectContent>
+                                                                    </Select>
+                                                                  </div>
+                                                                </div>
+                                                              )}
+                                                            </>
+                                                          ) : fieldInfo.type ===
+                                                            "text" ||
+                                                            fieldInfo.type ===
+                                                            "number" ? (
+                                                            <Input
+                                                              id={fieldInfo.name}
+                                                              type={
+                                                                fieldInfo.type
+                                                              }
+                                                              onChange={(
+                                                                event,
+                                                              ) => {
+                                                                const value =
+                                                                  event.target
+                                                                    .value;
+                                                                const updatedVariation =
+                                                                {
+                                                                  ...variation,
+                                                                  [fieldInfo.name]:
+                                                                    value,
+                                                                };
+                                                                console.log(
+                                                                  updatedVariation,
+                                                                );
+                                                              }}
+                                                              defaultValue={
+                                                                variation[
+                                                                fieldInfo.name
+                                                                ] || ""
+                                                              }
+                                                              name={
+                                                                fieldInfo.name
+                                                              }
+                                                              className=""
+                                                            />
+                                                          ) : fieldInfo.type ===
+                                                            "select" ? (
+                                                            <Select
+                                                              onValueChange={(
+                                                                value,
+                                                              ) => {
+                                                                const updatedVariations =
+                                                                  [...variations];
+                                                                updatedVariations[
+                                                                  index
+                                                                ] = {
+                                                                  ...updatedVariations[
+                                                                  index
+                                                                  ],
+                                                                  [fieldInfo.name]:
+                                                                    value, // Guardar el valor en la variación específica
+                                                                };
+                                                                setVariations(
+                                                                  updatedVariations,
+                                                                );
+                                                              }}
+                                                              defaultValue={
+                                                                variation[
+                                                                fieldInfo.name
+                                                                ] || "any"
+                                                              } // Usar el valor actual de la variación
+                                                            >
+                                                              <SelectTrigger className="">
+                                                                <SelectValue placeholder="Seleccionar opción" />
+                                                              </SelectTrigger>
+                                                              <SelectContent>
+                                                                {/* @ts-ignore */}
+                                                                {fieldInfo?.options.map(
+                                                                  (option) => (
+                                                                    <SelectItem
+                                                                      key={option}
+                                                                      value={
+                                                                        option
+                                                                      }
+                                                                    >
+                                                                      {option}
+                                                                    </SelectItem>
+                                                                  ),
+                                                                )}
+                                                              </SelectContent>
+                                                            </Select>
+                                                          ) : fieldInfo.type === "file" ? (
+                                                            <FileUploader
+                                                              value={variation.file} // Cambiar el valor a la propiedad file de la variación
+                                                              onValueChange={(newFiles) => {
+                                                                const updatedVariations = [...variations];
+                                                                updatedVariations[index] = {
+                                                                  ...updatedVariations[index],
+                                                                  file: newFiles, // Guardar el nuevo archivo en la variación
+                                                                };
+                                                                setVariations(updatedVariations);
+                                                              }}
+                                                              dropzoneOptions={dropzone}
+                                                              className="flex flex-col gap-2"
+                                                            >
+                                                              <div>
+                                                                {variation.file && variation.file.length > 0 ? ( // Verifica si hay archivos
+                                                                  <>
+                                                                    <img
+                                                                      onClick={() => handleImageClick(variation.file[0])}
+                                                                      className="w-full h-40 object-cover aspect-square rounded-lg cursor-pointer"
+                                                                      src={URL.createObjectURL(variation.file[0])}
+                                                                      alt=""
+                                                                    />
+                                                                  </>
+                                                                ) : (
+                                                                  <FileInput className="w-full h-40 flex items-center justify-center text-center border-2 rounded-lg border-dashed border-accent/50">
+                                                                    <div className="flex items-center justify-center text-center flex-col">
+                                                                      <svg
+                                                                        className="w-8 h-8 mb-3 text-accent/70 dark:text-accent/70"
+                                                                        aria-hidden="true"
+                                                                        xmlns="http://www.w3.org/2000/svg"
+                                                                        fill="none"
+                                                                        viewBox="0 0 20 16"
+                                                                      >
+                                                                        <path
+                                                                          stroke="currentColor"
+                                                                          strokeLinecap="round"
+                                                                          strokeLinejoin="round"
+                                                                          strokeWidth="2"
+                                                                          d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
+                                                                        ></path>
+                                                                      </svg>
+                                                                      <p className="mb-1 text-sm text-accent/70 dark:text-accent/70">
+                                                                        <span className="font-semibold">Click to upload</span>&nbsp; or drag and drop
+                                                                      </p>
+                                                                      <p className="text-xs text-accent/70 dark:text-accent/70">
+                                                                        SVG, PNG, JPG or GIF
+                                                                      </p>
+                                                                    </div>
+                                                                  </FileInput>
+                                                                )}
+                                                              </div>
+                                                              <FileUploaderContent>
+                                                                {variation.file && variation.file.map((item: any, index: any) => (
+                                                                  <FileUploaderItem
+                                                                    className="group"
+                                                                    key={index}
+                                                                    index={index}
+                                                                  >
+                                                                    <span className="truncate max-w-52">{item.name}</span>
+                                                                  </FileUploaderItem>
+                                                                ))}
+                                                              </FileUploaderContent>
+                                                            </FileUploader>
+                                                          ) : (
+                                                            <Textarea
+                                                              id={fieldInfo.name}
+                                                              onChange={(
+                                                                event,
+                                                              ) => {
+                                                                const value =
+                                                                  event.target
+                                                                    .value;
+                                                                const updatedVariation =
+                                                                {
+                                                                  ...variation,
+                                                                  [fieldInfo.name]:
+                                                                    value,
+                                                                };
+                                                                console.log(
+                                                                  updatedVariation,
+                                                                );
+                                                              }}
+                                                              defaultValue={
+                                                                variation[
+                                                                fieldInfo.name
+                                                                ] || ""
+                                                              }
+                                                              name={
+                                                                fieldInfo.name
+                                                              }
+                                                              className="resize-none h-32"
+                                                            />
+                                                          )}
+                                                        </div>
+                                                      )
+                                                    },
                                                   )}
                                                 </AccordionContent>
                                               </AccordionItem>
@@ -2016,7 +2085,7 @@ const CreateForm: React.FC<Props> = () => {
                                                 "any"
                                               }
                                             >
-                                              <SelectTrigger className="w-[400px]">
+                                              <SelectTrigger className="">
                                                 <SelectValue placeholder="Tipo de clase de envio" />
                                               </SelectTrigger>
                                               <SelectContent>
@@ -2164,7 +2233,7 @@ const CreateForm: React.FC<Props> = () => {
                                             <>
                                               {fieldInfo.name ===
                                                 "dimensions" ? (
-                                                <div className="flex items-center gap-2 max-w-[400px] w-full">
+                                                <div className="flex items-center gap-2  w-full">
                                                   {fieldInfo?.options &&
                                                     fieldInfo?.options.map(
                                                       (option) => (
@@ -2236,7 +2305,7 @@ const CreateForm: React.FC<Props> = () => {
                                                           ] || ""
                                                         }
                                                         name={fieldInfo.name}
-                                                        className="max-w-[400px]"
+                                                        className=""
                                                       />
                                                     </>
                                                   ) : (
