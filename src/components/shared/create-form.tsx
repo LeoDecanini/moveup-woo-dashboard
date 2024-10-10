@@ -889,6 +889,10 @@ const CreateForm: React.FC<Props> = () => {
       },
       description: "",
       file: null,
+      checks_types: {
+        active: true,
+        inventory_management: false,
+      }
     }));
 
     console.log("Variaciones generadas:", allVariations);
@@ -916,6 +920,22 @@ const CreateForm: React.FC<Props> = () => {
         {
           label: "GTIN, UPC, EAN o ISBN",
           formdata: "code",
+        },
+      ],
+    },
+    {
+      name: "checks_types",
+      label: "",
+      colSpan: "col-span-2",
+      type: "text",
+      options: [
+        {
+          label: "Activa",
+          formdata: "active",
+        },
+        {
+          label: "¿gestionar inventario?",
+          formdata: "inventory_management",
         },
       ],
     },
@@ -1592,7 +1612,7 @@ const CreateForm: React.FC<Props> = () => {
                                                   {fields.map(
                                                     (fieldInfo, fieldIndex) => (
                                                       <div
-                                                        className={` ${fieldInfo.name === "stock_status" || fieldInfo.name === "description" ? "col-span-2" : ""}`}
+                                                        className={` ${fieldInfo.colSpan}`}
                                                         key={fieldIndex}
                                                       >
                                                         <Label
@@ -1680,6 +1700,35 @@ const CreateForm: React.FC<Props> = () => {
                                                                 }}
                                                                 value={variation[option.formdata] || ""} // Usar el valor actual de la variación
                                                               />
+                                                            ))}
+                                                          </div>
+                                                        ) : fieldInfo.name === "checks_types" ? (
+                                                          <div className="flex items-center gap-5 py-2 mb-3 border-y">
+                                                            {/* @ts-ignore */}
+                                                            {fieldInfo.options.map((option) => (
+                                                              <div className="flex items-center space-x-2" key={option.formdata}>
+                                                                <Checkbox
+                                                                  onCheckedChange={(value) => {
+                                                                    const updatedVariations = [...variations];
+                                                                    updatedVariations[index] = {
+                                                                      ...updatedVariations[index],
+                                                                      checks_types: {
+                                                                        ...updatedVariations[index].checks_types,
+                                                                        [option.formdata]: value,
+                                                                      },
+                                                                    };
+                                                                    setVariations(updatedVariations);
+                                                                  }}
+                                                                  checked={variation.checks_types[option.formdata]}
+                                                                  id={`${fieldInfo.name}-${option.formdata}`}
+                                                                />
+                                                                <label
+                                                                  htmlFor={`${fieldInfo.name}-${option.formdata}`}
+                                                                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                                                >
+                                                                  {option.label}
+                                                                </label>
+                                                              </div>
                                                             ))}
                                                           </div>
                                                         ) : fieldInfo.type ===
